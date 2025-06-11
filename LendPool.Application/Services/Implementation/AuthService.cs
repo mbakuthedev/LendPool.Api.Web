@@ -109,7 +109,7 @@ namespace LendPool.Application.Services.Implementation
         {
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var guidId))
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userId))
                 return GenericResponse<bool>.FailResponse("Invalid or missing user ID");
 
             var userData = await _repo.GetUserByIdAsync(userId);

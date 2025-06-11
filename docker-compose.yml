@@ -1,0 +1,6 @@
+services:
+  lendpool.api:
+    image: ${DOCKER_REGISTRY-}lendpoolapi
+    build:
+      context: .
+      dockerfile: LendPool.Api/Dockerfile

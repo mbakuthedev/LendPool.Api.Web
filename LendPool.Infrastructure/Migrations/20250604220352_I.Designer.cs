@@ -3,6 +3,7 @@ using System;
 using LendPool.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LendPool.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250604220352_I")]
+    partial class I
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,46 +24,6 @@ namespace LendPool.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("LendPool.Domain.Models.InterestPayment", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LoanId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PaidByUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PoolId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LoanId");
-
-                    b.HasIndex("PaidByUserId");
-
-                    b.HasIndex("PoolId");
-
-                    b.ToTable("InterestPayments");
-                });
 
             modelBuilder.Entity("LendPool.Domain.Models.LenderPool", b =>
                 {
@@ -115,9 +78,6 @@ namespace LendPool.Infrastructure.Migrations
                     b.Property<DateTime>("DateModified")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("LenderPoolId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -132,7 +92,7 @@ namespace LendPool.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("LenderPoolMemberships");
+                    b.ToTable("LenderPoolMembership");
                 });
 
             modelBuilder.Entity("LendPool.Domain.Models.Loan", b =>
@@ -155,10 +115,8 @@ namespace LendPool.Infrastructure.Migrations
                     b.Property<decimal>("InterestRate")
                         .HasColumnType("numeric");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("LoanRequestId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("LoanStatus")
@@ -172,20 +130,11 @@ namespace LendPool.Infrastructure.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("TotalRepaid")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("LoanRequestId");
 
                     b.HasIndex("PoolId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Loans");
                 });
@@ -264,37 +213,6 @@ namespace LendPool.Infrastructure.Migrations
                     b.ToTable("PoolContributions");
                 });
 
-            modelBuilder.Entity("LendPool.Domain.Models.PoolWithdrawal", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LenderId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PoolId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LenderId");
-
-                    b.HasIndex("PoolId");
-
-                    b.ToTable("PoolWithdrawals");
-                });
-
             modelBuilder.Entity("LendPool.Domain.Models.Repayment", b =>
                 {
                     b.Property<string>("Id")
@@ -309,40 +227,14 @@ namespace LendPool.Infrastructure.Migrations
                     b.Property<DateTime>("DateModified")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsFullyRepaid")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsLate")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("LateFee")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("LenderpoolId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("LoanId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PaymentChannel")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("RemainingLoanBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("TransactionReference")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("LenderpoolId");
 
                     b.HasIndex("LoanId");
 
@@ -469,10 +361,6 @@ namespace LendPool.Infrastructure.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
@@ -489,73 +377,6 @@ namespace LendPool.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Wallets");
-                });
-
-            modelBuilder.Entity("LendPool.Domain.Models.WalletTransaction", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("WalletId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WalletId");
-
-                    b.ToTable("WalletTransactions");
-                });
-
-            modelBuilder.Entity("LendPool.Domain.Models.InterestPayment", b =>
-                {
-                    b.HasOne("LendPool.Domain.Models.Loan", "Loan")
-                        .WithMany()
-                        .HasForeignKey("LoanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LendPool.Domain.Models.User", "PaidByUser")
-                        .WithMany()
-                        .HasForeignKey("PaidByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LendPool.Domain.Models.LenderPool", "Pool")
-                        .WithMany()
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Loan");
-
-                    b.Navigation("PaidByUser");
-
-                    b.Navigation("Pool");
                 });
 
             modelBuilder.Entity("LendPool.Domain.Models.LenderPool", b =>
@@ -592,7 +413,9 @@ namespace LendPool.Infrastructure.Migrations
                 {
                     b.HasOne("LendPool.Domain.Models.LoanRequest", "LoanRequest")
                         .WithMany()
-                        .HasForeignKey("LoanRequestId");
+                        .HasForeignKey("LoanRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("LendPool.Domain.Models.LenderPool", "Pool")
                         .WithMany()
@@ -600,17 +423,9 @@ namespace LendPool.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LendPool.Domain.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("LoanRequest");
 
                     b.Navigation("Pool");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LendPool.Domain.Models.LoanRequest", b =>
@@ -651,40 +466,13 @@ namespace LendPool.Infrastructure.Migrations
                     b.Navigation("Pool");
                 });
 
-            modelBuilder.Entity("LendPool.Domain.Models.PoolWithdrawal", b =>
-                {
-                    b.HasOne("LendPool.Domain.Models.User", "Lender")
-                        .WithMany()
-                        .HasForeignKey("LenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LendPool.Domain.Models.LenderPool", "Pool")
-                        .WithMany()
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lender");
-
-                    b.Navigation("Pool");
-                });
-
             modelBuilder.Entity("LendPool.Domain.Models.Repayment", b =>
                 {
-                    b.HasOne("LendPool.Domain.Models.LenderPool", "LenderPool")
-                        .WithMany()
-                        .HasForeignKey("LenderpoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("LendPool.Domain.Models.Loan", "Loan")
                         .WithMany()
                         .HasForeignKey("LoanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("LenderPool");
 
                     b.Navigation("Loan");
                 });
@@ -718,17 +506,6 @@ namespace LendPool.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("LendPool.Domain.Models.WalletTransaction", b =>
-                {
-                    b.HasOne("LendPool.Domain.Models.Wallet", "Wallet")
-                        .WithMany("Transactions")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Wallet");
-                });
-
             modelBuilder.Entity("LendPool.Domain.Models.LenderPool", b =>
                 {
                     b.Navigation("Contributions");
@@ -746,11 +523,6 @@ namespace LendPool.Infrastructure.Migrations
 
                     b.Navigation("Wallet")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("LendPool.Domain.Models.Wallet", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

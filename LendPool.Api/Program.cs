@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddSwaggerWithJwtSupport()
+    .AddCustomAuthorizationPolicies()
     .AddJwtAuthentication(builder.Configuration);
 
 
@@ -39,16 +40,16 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseWhen(
-    context => context.Request.Path.StartsWithSegments("/api/secured"),
-    appBuilder => appBuilder.UseRoleAuthorization("Lender", "Admin")
-);
+//app.UseWhen(
+//    context => context.Request.Path.StartsWithSegments("/api/secured"),
+//    appBuilder => appBuilder.UseRoleAuthorization("Lender", "Admin")
+//);
 
 
-app.UseWhen(
-    context => context.Request.Path.StartsWithSegments("/api/borrower"),
-    appBuilder => appBuilder.UseRoleAuthorization("Borrower")
-);
+//app.UseWhen(
+//    context => context.Request.Path.StartsWithSegments("/api/borrower"),
+//    appBuilder => appBuilder.UseRoleAuthorization("Borrower")
+//);
 
 app.MapControllers();
 

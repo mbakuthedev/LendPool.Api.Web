@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -61,11 +62,40 @@ namespace LendPool.Api.Extensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
+                    RoleClaimType = ClaimTypes.Role
                 };
+            });
+
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            //  //  options.AddPolicy("LenderOnly", policy => policy.RequireRole("Lender"));
+            //    options.AddPolicy("BorrowerOnly", policy => policy.RequireRole("Borrower"));
+            //});
+
+
+
+            return services;
+        }
+
+
+        public static IServiceCollection AddCustomAuthorizationPolicies(this IServiceCollection services)
+        {
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Lender", policy =>
+                    policy.RequireRole("Lender", "Admin"));
+
+                options.AddPolicy("Borrower", policy =>
+                    policy.RequireRole("Borrower", "Admin"));
+
+                options.AddPolicy("Admin", policy =>
+                    policy.RequireRole("Admin"));
             });
 
             return services;
         }
+
     }
 }

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>04a76338-587a-4990-b408-ffe1ed15fa12</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LendPool.Application\LendPool.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Ideas\" />
   </ItemGroup>
 
 </Project>

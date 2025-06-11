@@ -27,8 +27,11 @@ namespace LendPool.Domain.Data
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<PoolWithdrawal> PoolWithdrawals { get; set; }
+        public DbSet<InterestPayment> InterestPayments { get; set; }
+        public DbSet<LenderPoolMembership> LenderPoolMemberships { get; set; }
 
-  
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

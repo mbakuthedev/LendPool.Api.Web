@@ -10,7 +10,8 @@ namespace LendPool.Domain.Models
     {
         public string UserId { get; set; }
         public decimal Balance { get; set; }
-
+        public string Currency { get; set; } = "NGN";
+        public List<WalletTransaction> Transactions { get; set; } = new();
         public User User { get; set; }
     }
 }

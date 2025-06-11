@@ -28,7 +28,11 @@ namespace LendPool.Infrastructure.Extensions
 
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserRepository, UserRepository>()
+                .AddScoped<ILendpoolRepository, LendpoolRepository>()
+                .AddScoped<IRepaymentRepository, RepaymentRepository>()
+                .AddScoped<IWalletRepository, WalletRepository>();
+               // .AddScoped<>;
              
             return services;
         }
