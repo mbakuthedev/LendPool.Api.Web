@@ -8,8 +8,9 @@ namespace LendPool.Api.Extensions
 {
     public static class SwaggerExtension
     {
+        private const string DefaultCorsPolicy = "AllowAll";
 
-            public static IServiceCollection AddSwaggerWithJwtSupport(this IServiceCollection services)
+        public static IServiceCollection AddSwaggerWithJwtSupport(this IServiceCollection services)
             {
                 services.AddSwaggerGen(c =>
                 {
@@ -92,6 +93,23 @@ namespace LendPool.Api.Extensions
 
                 options.AddPolicy("Admin", policy =>
                     policy.RequireRole("Admin"));
+            });
+
+            return services;
+        }
+
+
+       
+        public static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(DefaultCorsPolicy, builder =>
+                {
+                    builder.AllowAnyOrigin() // Use .WithOrigins("https://your-client.com") in production
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
             });
 
             return services;

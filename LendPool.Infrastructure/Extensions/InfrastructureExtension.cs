@@ -20,7 +20,7 @@ namespace LendPool.Infrastructure.Extensions
 
                 services.AddDbContext<ApplicationDbContext>(options =>
            options.UseNpgsql(
-               config.GetConnectionString("DefaultConnection"),
+               config.GetConnectionString("RenderConnection"),
                x => x.MigrationsAssembly("LendPool.Infrastructure") 
        )
    );
