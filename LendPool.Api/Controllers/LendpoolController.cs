@@ -20,7 +20,6 @@ namespace LendPool.Api.Controllers
         
 
         [HttpPost("lender/create-pool")]
-        [HttpPost("create")]
         public async Task<IActionResult> CreatePool([FromBody] CreateLenderPoolDto dto)
         {
             if (!ModelState.IsValid)
