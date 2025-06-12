@@ -93,8 +93,7 @@ namespace LendPool.Application.Services.Implementation
                 var authResponse = new AuthResponse
                 {
                     Token = token,
-                    Email = user.Email,
-                    Role = user.Role
+                 
                 };
 
                 return GenericResponse<AuthResponse>.SuccessResponse(authResponse, 200, "Login successful");
