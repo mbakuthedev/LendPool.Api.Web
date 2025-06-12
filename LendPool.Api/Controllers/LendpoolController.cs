@@ -20,12 +20,25 @@ namespace LendPool.Api.Controllers
         
 
         [HttpPost("lender/create-pool")]
+        [HttpPost("create")]
         public async Task<IActionResult> CreatePool([FromBody] CreateLenderPoolDto dto)
         {
-            var userId =  User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var pool = await _lenderPoolService.CreateLenderPoolAsync(dto, userId);
-            return Ok(pool);
+            if (!ModelState.IsValid)
+                return BadRequestResponse("Invalid input data.");
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized("User is not authenticated.");
+
+            var result = await _lenderPoolService.CreateLenderPoolAsync(dto, userId);
+
+            if (!result.Success)
+                return BadRequestResponse(result.Message);
+
+            return Success(result);
         }
+
 
         [HttpPost("lender/add-user")]
         public async Task<IActionResult> AddUserToPool([FromBody] AddUserToPoolDto dto)

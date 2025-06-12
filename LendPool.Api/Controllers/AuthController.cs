@@ -30,6 +30,20 @@ namespace LendPool.Api.Controllers
             }
         }
 
+        [HttpGet("user/current")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var user = await _authService.GetCurrentUser();
+                return Ok(new { user });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
         [HttpPost("kyc-borrower")]
         public async Task<IActionResult> UpdateBorrowerKyc([FromBody] BorrowerKycUpdateRequest request)
         {

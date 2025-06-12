@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LendPool.Application.Requests;
 using LendPool.Application.Responses;
+using LendPool.Domain.DTOs;
 using LendPool.Domain.Responses;
 
 namespace LendPool.Application.Services.Interfaces
@@ -16,5 +17,6 @@ namespace LendPool.Application.Services.Interfaces
         Task<GenericResponse<string>> RegisterAsync(RegisterRequest request);
         Task<GenericResponse<AuthResponse>> LoginAsync(LoginRequest request);
 
+        Task<GenericResponse<CurrentUserDto>> GetCurrentUser();
     }
 }

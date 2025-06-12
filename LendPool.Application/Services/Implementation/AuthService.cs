@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using LendPool.Application.Requests;
 using LendPool.Application.Responses;
 using LendPool.Application.Services.Interfaces;
+using LendPool.Domain.DTOs;
 using LendPool.Domain.Enums;
 using LendPool.Domain.Models;
 using LendPool.Domain.Responses;
@@ -33,6 +34,48 @@ namespace LendPool.Application.Services.Implementation
             _config = config;
             _httpContextAccessor = httpContextAccessor;
         }
+
+
+        public async Task<GenericResponse<CurrentUserDto>> GetCurrentUser()
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                if (httpContext == null || httpContext.User == null || !httpContext.User.Identity.IsAuthenticated)
+                {
+                    return GenericResponse<CurrentUserDto>.FailResponse("User is not authenticated", 401);
+                }
+
+                var user = httpContext.User;
+
+                var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                var email = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
+                            ?? user.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+                var role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return GenericResponse<CurrentUserDto>.FailResponse("User ID not found in token", 401);
+                }
+
+                var authResponse = new CurrentUserDto
+                {
+                    UserId = userId,
+                    Email = email,
+                    Role = role,
+                  //  Message = "User authenticated"
+                };
+
+                return GenericResponse<CurrentUserDto>.SuccessResponse(authResponse, 200, "User gotten sucessfully");
+            }
+            catch (Exception ex)
+            {
+                return GenericResponse<CurrentUserDto>.FailResponse($"An error occurred: {ex.Message}", 500);
+            }
+        }
+
+
         public async Task<GenericResponse<AuthResponse>> LoginAsync(LoginRequest request)
         {
             try
