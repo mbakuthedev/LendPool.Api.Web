@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace LendPool.Domain.Models
@@ -19,7 +20,11 @@ namespace LendPool.Domain.Models
        
         [ForeignKey(nameof(CreatedByUserId))]
         public User CreatedByUser { get; set; }
+
+        [JsonIgnore]
         public ICollection<PoolContribution> Contributions { get; set; }
+
+        [JsonIgnore]
         public ICollection<LenderPoolMembership> LenderPoolMemberships { get; set; }
 
     }
