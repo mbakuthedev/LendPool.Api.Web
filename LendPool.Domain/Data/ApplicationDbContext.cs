@@ -49,6 +49,8 @@ namespace LendPool.Domain.Data
 
                 Id = "11111111-1111-1111-1111-111111111111",
                 DateCreated = new DateTime(2023, 1, 1),
+                FirstName = "Admin",
+                LastName = "Gbemidebe",
                 DateModified = new DateTime(2023, 1, 1),
                 Email = "admin@lendpool.com",
                 PasswordHash = "$2a$11$.7M3DWXSh2PA6ETF4DyBLuKwDj1SAY7.aEfcj3a7x7q8ClPMT42bO", // Hashed password for "Admin@123"

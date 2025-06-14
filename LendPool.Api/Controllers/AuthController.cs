@@ -56,6 +56,15 @@ namespace LendPool.Api.Controllers
             return Ok("Borrower KYC updated");
         }
 
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetProfile()
+        {
+            var fullName = User.FindFirst("FullName")?.Value;
+            return Ok(new { FullName = fullName });
+        }
+
+
         [Authorize(Roles = "Lender")]
         [HttpPost("kyc-lender")]
         public async Task<IActionResult> UpdateLenderKyc([FromBody] LenderKycUpdateRequest request)
