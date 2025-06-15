@@ -9,6 +9,10 @@ namespace LendPool.Domain.Models
 {
     public class User : BaseEntity
     {
+        public User()
+        {
+            FullName = FirstName + " " +  LastName;
+        }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string FullName { get; set; }
