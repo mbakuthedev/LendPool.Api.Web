@@ -118,7 +118,8 @@ namespace LendPool.Application.Services.Implementation
             {
                 Id = Guid.NewGuid().ToString(),
                 Email = request.Email,
-                FullName = request.Fullname,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
                 PasswordHash = hashedPassword,
                 Role = request.Role
             };
