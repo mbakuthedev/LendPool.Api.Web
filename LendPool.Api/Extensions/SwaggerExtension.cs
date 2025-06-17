@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 namespace LendPool.Api.Extensions
 {
@@ -115,5 +116,20 @@ namespace LendPool.Api.Extensions
             return services;
         }
 
+        public static void ConfigureSerilog(this WebApplicationBuilder builder)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithMachineName()
+                .Enrich.WithProcessId()
+                .Enrich.WithThreadId()
+                .WriteTo.Console()
+                .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+                .ReadFrom.Configuration(builder.Configuration) 
+                .CreateLogger();
+
+            builder.Host.UseSerilog();
+        }
     }
 }

@@ -16,6 +16,7 @@ builder.Services.AddSwaggerWithJwtSupport()
     .AddCustomAuthorizationPolicies()
     .AddJwtAuthentication(builder.Configuration);
 
+builder.ConfigureSerilog();
 
 builder.Services.AddHttpContextAccessor();
 
