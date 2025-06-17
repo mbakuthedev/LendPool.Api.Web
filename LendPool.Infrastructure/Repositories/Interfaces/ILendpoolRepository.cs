@@ -15,6 +15,7 @@ namespace LendPool.Infrastructure.Repositories.Interfaces
       //  Task<bool> AddUserToPoolAsync(string userId, string poolId);
         Task<bool> IsUserInPoolAsync(string userId, string poolId);
 
+        Task<GenericResponse<LenderPool>> GetPoolById(string poolId);
         Task<GenericResponse<PoolSummaryDto>> GetPoolSummaryAsync(string poolId);
         Task<GenericResponse<bool>> RecordWithdrawalAsync(string poolId, string userId, decimal amount);
         Task<decimal> GetAvailableBalanceAsync(string poolId, string userId);
