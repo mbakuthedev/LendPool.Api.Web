@@ -156,6 +156,7 @@ namespace LendPool.Application.Services.Implementation
             return GenericResponse<IEnumerable<LoanDto>>.SuccessResponse(loanDtos, 200, "Successfully fetched loans.");
         }
 
+
         public async Task<GenericResponse<IEnumerable<LenderPool>>> GetAllPoolsAsync()
         {
             var pools = await _poolRepository.GetAllAsync();
@@ -230,5 +231,25 @@ namespace LendPool.Application.Services.Implementation
             return GenericResponse<PoolSummaryDto>.SuccessResponse(summary.Data, 200, "Pool summary retrieved successfully");
         }
 
+        public async Task<GenericResponse<LenderPoolDto>> GetPoolById(string poolId)
+        {
+           var pool = await _poolRepository.GetPoolById(poolId);
+
+            var poolData = pool.Data;
+
+            if (poolData == null)
+            {
+                return GenericResponse<LenderPoolDto>.FailResponse("Lender pool not found", 404);
+            }
+            var poolDto = new LenderPoolDto
+            {
+                Name = poolData.Name,
+                Description = poolData.Description,
+                InterestRate = poolData.InterestRate,
+                MaximumAmount = poolData.MaximumAmount,
+                MinimumAmount = poolData.MinimumAmount,
+            };
+            return GenericResponse<LenderPoolDto>.SuccessResponse(poolDto, 200, "Successfully fetched pool");
+        }
     }
 }

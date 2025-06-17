@@ -226,5 +226,18 @@ namespace LendPool.Infrastructure.Repositories.Implementation
 
             return GenericResponse<bool>.SuccessResponse(saved, 200);
         }
+
+        public async Task<GenericResponse<LenderPool>> GetPoolById(string poolId)
+        {
+            var pool = await _context.LenderPools.FindAsync(poolId);
+
+
+            if (pool == null)
+            {
+                return GenericResponse<LenderPool>.FailResponse("No pools found", 404);
+            }
+
+            return GenericResponse<LenderPool>.SuccessResponse(pool, 200, "No pools found");
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace LendPool.Application.Services.Interfaces
     public interface ILenderpoolService
     {
         Task<GenericResponse<string>> AddUserToPoolAsync(AddUserToPoolDto dto, string actingUserId);
-   
+        Task<GenericResponse<LenderPoolDto>> GetPoolById(string poolId);
         Task<GenericResponse<LenderPool>> CreateLenderPoolAsync(CreateLenderPoolDto dto, string creatorUserId);
         Task<GenericResponse<IEnumerable<LenderPool>>> GetAllPoolsAsync();
         Task<GenericResponse<IEnumerable<LoanDto>>> GetActiveLoansByPoolAsync(string poolId);

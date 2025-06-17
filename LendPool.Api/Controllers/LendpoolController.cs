@@ -38,6 +38,22 @@ namespace LendPool.Api.Controllers
             return Success(result);
         }
 
+        [HttpGet("lender/get-pool-by-id")]
+        public async Task<IActionResult> GetPoolById(string poolId)
+        {
+           
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized("User is not authenticated.");
+
+            var result = await _lenderPoolService.GetPoolById(poolId);
+
+            if (!result.Success)
+                return BadRequestResponse(result.Message);
+
+            return Success(result);
+        }
 
         [HttpPost("lender/add-user")]
         public async Task<IActionResult> AddUserToPool([FromBody] AddUserToPoolDto dto)
