@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LendPool.Application.Services.Interfaces;
 using LendPool.Domain.DTOs;
+using LendPool.Domain.Enums;
 using LendPool.Domain.Models;
 using LendPool.Domain.Responses;
 using LendPool.Infrastructure.Repositories.Interfaces;
@@ -85,7 +86,8 @@ namespace LendPool.Application.Services.Implementation
                     new LenderPoolMembership
                     {
                         UserId = creatorUserId,
-                        JoinedAt = DateTime.UtcNow
+                        JoinedAt = DateTime.UtcNow,
+                        Role = UserRole.SuperLender.ToString(),
                     }
                 }
             };

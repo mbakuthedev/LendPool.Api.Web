@@ -55,13 +55,17 @@ namespace LendPool.Api.Controllers
             return Success(result);
         }
 
-        [HttpPost("lender/add-user")]
-        public async Task<IActionResult> AddUserToPool([FromBody] AddUserToPoolDto dto)
+
+        [Authorize(Policy = "SuperLenderPolicy")]
+        [HttpPost("lender/{poolId}/add-user")]
+        public async Task<IActionResult> AddUserToPool(string poolId, [FromBody] AddUserToPoolDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            dto.PoolId = poolId;
             var pool = await _lenderPoolService.AddUserToPoolAsync(dto, userId);
             return Ok(pool);
         }
+
 
 
         [HttpGet("lender/get-all-pools")]

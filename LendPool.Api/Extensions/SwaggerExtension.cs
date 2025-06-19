@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using System.Text;
+using LendPool.Api.RoleManagement;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -92,9 +94,14 @@ namespace LendPool.Api.Extensions
                 options.AddPolicy("Borrower", policy =>
                     policy.RequireRole("Borrower", "Admin"));
 
+                options.AddPolicy("SuperLenderPolicy", policy =>
+                policy.Requirements.Add(new PoolRoleRequirement("SuperLender")));
+
                 options.AddPolicy("Admin", policy =>
                     policy.RequireRole("Admin"));
             });
+
+            services.AddScoped<IAuthorizationHandler, PoolRoleHandler>();
 
             return services;
         }

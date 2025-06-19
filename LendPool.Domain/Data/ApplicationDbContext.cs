@@ -33,6 +33,7 @@ namespace LendPool.Domain.Data
         public DbSet<LenderPoolMembership> LenderPoolMemberships { get; set; }
 
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 

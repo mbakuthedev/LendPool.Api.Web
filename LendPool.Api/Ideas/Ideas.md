@@ -110,3 +110,15 @@ public IActionResult ViewPools()
     return Ok("Accessible by Admin and Lender");
 }
 builder.Configuration.AddJsonFile("permissions.json", optional: false, reloadOnChange: true);
+
+
+| Scenario                                                    | Recommendation                                                    |
+| ----------------------------------------------------------- | ----------------------------------------------------------------- |
+| A user can be **both lender and borrower**                  | Use **multi-role assignment** (many-to-many UserRoles table)      |
+| Roles can change after registration                         | Implement a **role management system** (admin editable)           |
+| Role behaviors depend on **context (e.g., per-pool roles)** | Use **scoped roles**, like `SuperLender` for `PoolX`              |
+| Fine-grained permissions needed                             | Implement **claims-based authorization** or **permissions table** |
+
+
+
+Thinking about making it a b2b platform, where you look for pools with lower interests , borrow there and then invest into your own pool and get you ROI, then repay your loan

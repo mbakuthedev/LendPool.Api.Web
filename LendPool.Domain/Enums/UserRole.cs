@@ -10,6 +10,7 @@ namespace LendPool.Domain.Enums
     {
         Admin = 1,
         Lender = 2,
-        Borrower = 3
+        SuperLender = 3,
+        Borrower = 4
     }
 }

@@ -14,6 +14,8 @@ namespace LendPool.Domain.Models
         public string Purpose { get; set; }
         public string DurationInMonths { get; set; }
         public string RequestStatus { get; set; }
+        public int TenureInDays { get; set; }
+        public string? AdminComment { get; set; }
         public string MatchedPoolId { get; set; }
 
         public User Borrower { get; set; }
