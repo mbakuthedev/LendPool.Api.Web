@@ -19,6 +19,8 @@ namespace LendPool.Application.Extensions
                 .AddScoped<IInterestPaymentService, InterestPaymentService>()
                 .AddScoped<IRepaymentService, RepaymentService>()
                 .AddScoped<IUserService, UserService>()
+                .AddScoped<ILoanService, LoanService>()
+
                 .AddScoped<IWalletService,WalletService>();
                 //.AddScoped<IInterestPaymentService, Inrwe>;
 

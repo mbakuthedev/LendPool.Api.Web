@@ -60,7 +60,59 @@ namespace LendPool.Infrastructure.Repositories.Implementation
                 return GenericResponse<Repayment>.FailResponse($"Error adding loan request: {ex.Message}");
             }
         }
+        public async Task<GenericResponse<int>> GetNumberOfApprovals(string requestId)
+        {
+            try
+            {
 
+               var approvals =  await _db.LoanApprovals
+               .CountAsync(a => a.LoanRequestId == requestId);
+  
+                return GenericResponse<int>.SuccessResponse(approvals, 200, "Approvals fetched succesfully");
+            }
+            catch (Exception ex)
+            {
+                return GenericResponse<int>.FailResponse($"Error adding loan request: {ex.Message}");
+            }
+        }
+
+        public async Task<GenericResponse<LoanApproval>> AddApprovalAsync(LoanApproval approval)
+        {
+            try
+            {
+                 await _db.LoanApprovals.AddAsync(approval);
+
+                await _db.SaveChangesAsync();
+
+                return GenericResponse<LoanApproval>.SuccessResponse(approval, 201, "Loan request added");
+            }
+            catch (Exception ex)
+            {
+                return GenericResponse<LoanApproval>.FailResponse($"Error adding loan request: {ex.Message}");
+            }
+        }
+
+        public async Task<GenericResponse<bool>> GetApprovals(string requestId, string lenderId)
+        {
+            try
+            {
+                var approvals =  _db.LoanApprovals
+                .Any(a => a.LoanRequestId == requestId && a.LenderId == lenderId);
+
+
+                if (!approvals)
+                {
+                    return GenericResponse<bool>.FailResponse("Lender has not approved this loan request", 400);
+                }
+
+                return GenericResponse<bool>.SuccessResponse(approvals, 200, "Loan request added");
+            }
+            catch (Exception ex)
+            {
+                return GenericResponse<bool>.FailResponse($"Error adding loan request: {ex.Message}");
+            }
+        }
+       
         public async Task<GenericResponse<Transaction>> AddTransactionAsync(Transaction transaction)
         {
             var newTransaction =  await _db.Transactions.AddAsync(transaction);

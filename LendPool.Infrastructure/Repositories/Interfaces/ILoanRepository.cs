@@ -10,6 +10,9 @@ namespace LendPool.Infrastructure.Repositories.Interfaces
 {
     public interface ILoanRepository
     {
+        Task<GenericResponse<int>> GetNumberOfApprovals(string requestId);
+        Task<GenericResponse<LoanApproval>> AddApprovalAsync(LoanApproval approval);
+        Task<GenericResponse<bool>> GetApprovals(string requestId, string lenderId);
         Task<GenericResponse<LoanRequest>> AddLoanRequestAsync(LoanRequest request);
         Task<GenericResponse<LoanRequest>> GetLoanRequestByIdAsync(string requestId);
         Task<GenericResponse<List<LoanRequest>>> GetLoanRequestsByUserAsync(string userId);

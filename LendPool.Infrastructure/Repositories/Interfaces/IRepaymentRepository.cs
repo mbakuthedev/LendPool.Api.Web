@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LendPool.Domain.Models;
+using LendPool.Domain.Responses;
 
 namespace LendPool.Infrastructure.Repositories.Interfaces
 {
@@ -12,6 +13,7 @@ namespace LendPool.Infrastructure.Repositories.Interfaces
         Task<IEnumerable<Repayment>> GetRepaymentsByPoolIdAsync(string poolId);
         Task<decimal> GetTotalRepaidForLoanAsync(string loanId);
         Task<Loan> GetLoanByIdAsync(string loanId);
+        Task<GenericResponse<Repayment>> AddRepayment(Repayment repayment);
     }
 
 }

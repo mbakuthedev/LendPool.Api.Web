@@ -14,6 +14,7 @@ namespace LendPool.Application.Services.Interfaces
         decimal CalculateInterestEarned(decimal amountPaid, decimal interestRate);
         decimal CalculateLateFee(DateTime dueDate, DateTime paymentDate, decimal baseAmount);
         decimal CalculateRemainingLoanBalance(decimal totalLoanAmount, decimal totalRepaid);
+
     }
 
 }

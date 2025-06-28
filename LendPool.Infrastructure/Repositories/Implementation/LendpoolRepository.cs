@@ -147,6 +147,37 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             return GenericResponse<IEnumerable<LenderPool>>.SuccessResponse(pools, 200);
         }
 
+        public async Task<GenericResponse<PaginatedResponse<LenderPool>>> GetAllPoolsWithMembersAsync(int pageNumber = 1, int pageSize = 10)
+        {
+            var query = _context.LenderPools
+                .Include(p => p.LenderPoolMemberships)
+                    .ThenInclude(m => m.User)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var pools = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            if (!pools.Any())
+            {
+                return GenericResponse<PaginatedResponse<LenderPool>>.FailResponse("No pools found", 404);
+            }
+
+            var result = new PaginatedResponse<LenderPool>
+            {
+                Data = pools,
+                TotalCount = totalCount,
+                PageSize = pageSize,
+                CurrentPage = pageNumber
+            };
+
+            return GenericResponse<PaginatedResponse<LenderPool>>.SuccessResponse(result, 200);
+        }
+
+
         public async Task<GenericResponse<IEnumerable<LoanDto>>> GetActiveLoansByPoolAsync(string poolId)
         {
             var loans =  await _context.Loans

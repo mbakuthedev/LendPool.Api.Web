@@ -20,9 +20,11 @@ namespace LendPool.Domain.Models
         public string LoanStatus { get; set; }
         public bool IsActive { get; set; }
         public string UserId { get; set; }
-
+        public string LoanRequestId { get; set; }
         [ForeignKey(nameof(UserId))]
         public User User { get; set; }
+
+        [ForeignKey(nameof(LoanRequestId))]
         public LoanRequest LoanRequest { get; set; }
         public LenderPool Pool { get; set; }
     }

@@ -32,6 +32,7 @@ namespace LendPool.Domain.Data
         public DbSet<InterestPayment> InterestPayments { get; set; }
         public DbSet<LenderPoolMembership> LenderPoolMemberships { get; set; }
 
+        public DbSet<LoanApproval> LoanApprovals { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LendPool.Domain.Data;
 using LendPool.Domain.Models;
+using LendPool.Domain.Responses;
 using LendPool.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +40,17 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             return await _context.Loans
                 .FirstOrDefaultAsync(l => l.Id == loanId);
         }
+
+        public async Task<GenericResponse<Repayment>> AddRepayment(Repayment repayment)
+        {
+           await  _context.Repayments.AddAsync(repayment);
+
+           await  _context.SaveChangesAsync();
+
+            return GenericResponse<Repayment>.SuccessResponse(repayment, 201, "Success adding repayment ");
+        }
+
+        
     }
 
 }
