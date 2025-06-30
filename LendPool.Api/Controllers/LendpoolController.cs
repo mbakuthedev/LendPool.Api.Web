@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using LendPool.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using System.Reflection;
 
 namespace LendPool.Api.Controllers
 {
@@ -67,7 +68,7 @@ namespace LendPool.Api.Controllers
         }
 
 
-
+       
         [HttpGet("lender/get-all-pools")]
         public async Task<IActionResult> GetAllPools()
         {

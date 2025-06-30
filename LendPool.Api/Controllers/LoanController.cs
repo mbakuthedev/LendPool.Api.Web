@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using LendPool.Domain.DTOs;
+using LendPool.Application.Services.Implementation;
 
 namespace LendPool.Api.Controllers
 {
@@ -12,14 +13,23 @@ namespace LendPool.Api.Controllers
         {
             private readonly ILoanService _loanService;
             private readonly IHttpContextAccessor _httpContextAccessor;
+            private readonly ILenderpoolService _lenderPoolService;
 
-            public LoanController(ILoanService loanService, IHttpContextAccessor httpContextAccessor)
+            public LoanController(ILoanService loanService, IHttpContextAccessor httpContextAccessor, ILenderpoolService lenderpoolService)
             {
                 _loanService = loanService;
+            _lenderPoolService = lenderpoolService;
                 _httpContextAccessor = httpContextAccessor;
             }
 
-            private string GetUserId() =>
+            [HttpGet("borrower/get-all-pools")]
+            public async Task<IActionResult> GetAllPools()
+            {
+                var pools = await _lenderPoolService.GetAllPoolsAsync();
+                return Ok(pools);
+            }
+
+        private string GetUserId() =>
                 _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             [HttpPost("request-loan")]
