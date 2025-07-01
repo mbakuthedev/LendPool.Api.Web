@@ -13,7 +13,7 @@ namespace LendPool.Domain.Models
         public string LenderId { get; set; }
         public DateTime ApprovedAt { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey(nameof(LenderId))]
+        [ForeignKey(nameof(LoanRequestId))]
         public LoanRequest LoanRequest { get; set; }
     }
 

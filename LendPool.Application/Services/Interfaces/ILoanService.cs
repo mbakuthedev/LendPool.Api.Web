@@ -12,8 +12,8 @@ namespace LendPool.Application.Services.Interfaces
     public interface ILoanService
     {
         Task<GenericResponse<Loan>> AddLoanAsync(CreateLoanDto loanDto);
-        Task<GenericResponse<LoanRequest>> SubmitLoanRequestAsync(string userId, LoanRequestDto dto);
-        Task<GenericResponse<string>> ApproveLoanAsync(string requestId, string lenderId, string comment);
+        Task<GenericResponse<LoanRequestResponseDto>> SubmitLoanRequestAsync(string userId, LoanRequestDto dto);
+        Task<GenericResponse<string>> ApproveLoanAsync(string lenderId, ApproveLoanRequestDto dto);
         Task<GenericResponse<List<LoanRequest>>> GetAllLoanRequestsAsync();
         Task<GenericResponse<Loan>> GetLoanByIdAsync(string id);
         Task<GenericResponse<LoanRequest>> GetLoanRequestByIdAsync(string requestId);

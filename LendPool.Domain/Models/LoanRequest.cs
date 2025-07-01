@@ -13,7 +13,7 @@ namespace LendPool.Domain.Models
         public decimal RequestedAmount { get; set; }
         public string Purpose { get; set; }
         public decimal Amount { get; set; }
-        public string DurationInMonths { get; set; }
+        public int DurationInMonths { get; set; }
         public string RequestStatus { get; set; }
         public int TenureInDays { get; set; }
         public string? AdminComment { get; set; } // make this a list of comments later on, so everyone can comment 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,15 +34,30 @@ namespace LendPool.Domain.DTOs
         public string LoanStatus { get; set; }
         public bool IsActive { get; set; }
     }
+    public class LoanRequestResponseDto
+    {
+        public string Id { get; set; }
+        public decimal Amount { get; set; }
+        public int TenureInDays { get; set; }
+        public string Purpose { get; set; }
+        public string RequestStatus { get; set; }
+        public DateTime DateCreated { get; set; }
+        public string MatchedPoolId { get; set; }
+    }
 
     public class LoanRequestDto
     {
         public decimal RequestedAmount { get; set; }
         public string Purpose { get; set; }
-        public string DurationInMonths { get; set; }
-        public string RequestStatus { get; set; }
-        public int TenureInDays { get; set; }
+        public int DurationInMonths { get; set; }
         public string MatchedPoolId { get; set; }
+    }
+    public class ApproveLoanRequestDto
+    {
+        [Required]
+        public string RequestId { get; set; }
+
+        public string Comment { get; set; }
     }
 
 

@@ -3,6 +3,7 @@ using System;
 using LendPool.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LendPool.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250701042745_MonthsDurationMigration")]
+    partial class MonthsDurationMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -219,7 +222,7 @@ namespace LendPool.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LoanRequestId");
+                    b.HasIndex("LenderId");
 
                     b.ToTable("LoanApprovals");
                 });
@@ -666,7 +669,7 @@ namespace LendPool.Infrastructure.Migrations
                 {
                     b.HasOne("LendPool.Domain.Models.LoanRequest", "LoanRequest")
                         .WithMany("Approvals")
-                        .HasForeignKey("LoanRequestId")
+                        .HasForeignKey("LenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

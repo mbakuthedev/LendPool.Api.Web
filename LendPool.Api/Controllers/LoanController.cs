@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using LendPool.Domain.DTOs;
 using LendPool.Application.Services.Implementation;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LendPool.Api.Controllers
 {
@@ -32,50 +33,69 @@ namespace LendPool.Api.Controllers
         private string GetUserId() =>
                 _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            [HttpPost("request-loan")]
-            public async Task<IActionResult> RequestLoan([FromBody] LoanRequestDto dto)
-            {
-                await _loanService.SubmitLoanRequestAsync(GetUserId(), dto);
-                return Ok("Loan request submitted.");
-            }
+            [HttpPost("loan/request-loan")]
+        public async Task<IActionResult> RequestLoan([FromBody] LoanRequestDto dto)
+        {
+            var userId = GetUserId(); 
+            var result = await _loanService.SubmitLoanRequestAsync(userId, dto);
 
-            [HttpGet("loan/my-requests")]
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
+        [HttpGet("loan/my-requests")]
             public async Task<IActionResult> MyLoanRequests()
             {
                 var result = await _loanService.GetLoanRequestsByUserAsync(GetUserId());
                 return Ok(result);
             }
 
-            [HttpPut("loan/{id}/approve-loan")]
-            public async Task<IActionResult> ApproveLoan(string id, [FromQuery] string poolId, [FromBody] string comment)
-            {
-                await _loanService.ApproveLoanAsync(id, poolId, comment);
-                return Ok("Loan approved.");
-            }
+        [Authorize(Roles = "Lender")]
+        [HttpPut("loan/approve-loan")]
+        public async Task<IActionResult> ApproveLoan([FromBody] ApproveLoanRequestDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid approval input");
 
-            //[HttpPut("{id}/reject")]
-            //public async Task<IActionResult> RejectLoan(Guid id, [FromBody] string reason)
-            //{
-            //    await _loanService.RejectLoanRequestAsync(id, reason);
-            //    return Ok("Loan rejected.");
-            //}
+            var lenderId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            [HttpGet("loan/my-loans")]
+            if (string.IsNullOrWhiteSpace(lenderId))
+                return Unauthorized("Lender not authenticated");
+
+            var result = await _loanService.ApproveLoanAsync(lenderId, dto);
+
+            if (!result.Success)
+                return BadRequest(result.Message);
+
+            return Ok(result);
+        }
+
+        //[HttpPut("{id}/reject")]
+        //public async Task<IActionResult> RejectLoan(Guid id, [FromBody] string reason)
+        //{
+        //    await _loanService.RejectLoanRequestAsync(id, reason);
+        //    return Ok("Loan rejected.");
+        //}
+
+        [HttpGet("loan/my-loans")]
             public async Task<IActionResult> MyLoans()
             {
                 var loans = await _loanService.GetLoansByUserAsync(GetUserId());
                 return Ok(loans);
             }
 
-            [HttpGet("loan/{id}")]
-            public async Task<IActionResult> GetLoan(string id)
+            [HttpGet("loan/get-loan-by-id")]
+            public async Task<IActionResult> GetLoan([FromQuery]string id)
             {
                 var loan = await _loanService.GetLoanByIdAsync(id);
                 return Ok(loan);
             }
 
-            [HttpGet("loan/pool/{id}")]
-            public async Task<IActionResult> GetLoansByPool(string id)
+            [HttpGet("loan/get-loans-by-pool-id")]
+            public async Task<IActionResult> GetLoansByPool([FromQuery]string id)
             {
                 var loans = await _loanService.GetLoansByPoolAsync(id);
                 return Ok(loans);

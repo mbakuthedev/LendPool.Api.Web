@@ -63,65 +63,93 @@ namespace LendPool.Application.Services.Implementation
             }
         }
 
-        public async Task<GenericResponse<LoanRequest>> SubmitLoanRequestAsync(string userId, LoanRequestDto dto)
+        public async Task<GenericResponse<LoanRequestResponseDto>> SubmitLoanRequestAsync(string userId, LoanRequestDto dto)
         {
+            if (dto.RequestedAmount <= 0)
+                return GenericResponse<LoanRequestResponseDto>.FailResponse("Requested amount must be greater than 0.", 400);
+
+            if (dto.DurationInMonths <= 0)
+                return GenericResponse<LoanRequestResponseDto>.FailResponse("Tenure must be at least 1 month.", 400);
+
+            if (string.IsNullOrWhiteSpace(dto.Purpose))
+                return GenericResponse<LoanRequestResponseDto>.FailResponse("Purpose is required.", 400);
+
+            if (string.IsNullOrWhiteSpace(dto.MatchedPoolId))
+                return GenericResponse<LoanRequestResponseDto>.FailResponse("Pool ID is required.", 400);
+
+            var startDate = DateTime.UtcNow;
+            var dueDate = startDate.AddMonths(dto.DurationInMonths);
+
             var request = new LoanRequest
             {
                 Id = Guid.NewGuid().ToString(),
                 BorrowerId = userId,
                 Amount = dto.RequestedAmount,
-                TenureInDays = dto.TenureInDays,
-                Purpose = dto.Purpose,
+               DurationInMonths = dto.DurationInMonths,
+                TenureInDays = (dueDate - startDate).Days,
+                Purpose = dto.Purpose.Trim(),
                 RequestStatus = LoanRequestStatus.Pending.ToString(),
-                DateCreated = DateTime.UtcNow
-             
+                DateCreated = startDate,
+                MatchedPoolId = dto.MatchedPoolId
             };
 
             try
             {
                 var result = await _loanRepository.AddLoanRequestAsync(request);
-                await _loanRepository.SaveChangesAsync();
+              
 
-                _logger.LogInformation("Loan request submitted by user {UserId}", userId);
-                return result;
+                _logger.LogInformation("Loan request submitted by user {UserId} for pool {PoolId}", userId, dto.MatchedPoolId);
+
+                var responseDto = new LoanRequestResponseDto
+                {
+                    Id = request.Id,
+                    Amount = request.Amount,
+                    TenureInDays = request.TenureInDays,
+                    Purpose = request.Purpose,
+                    RequestStatus = request.RequestStatus,
+                    DateCreated = request.DateCreated,
+                    MatchedPoolId = request.MatchedPoolId
+                };
+
+                return GenericResponse<LoanRequestResponseDto>.SuccessResponse(responseDto, 201, "Loan request submitted successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error submitting loan request for user {UserId}", userId);
-                return GenericResponse<LoanRequest>.FailResponse("Failed to submit loan request.");
+                return GenericResponse<LoanRequestResponseDto>.FailResponse("Failed to submit loan request.");
             }
         }
 
-        public async Task<GenericResponse<string>> ApproveLoanAsync(string requestId, string lenderId, string comment)
+        public async Task<GenericResponse<string>> ApproveLoanAsync(string lenderId,  ApproveLoanRequestDto dto)
         {
-            var request = await _loanRepository.GetLoanRequestByIdAsync(requestId);
+            var request = await _loanRepository.GetLoanRequestByIdAsync(dto.RequestId);
             if (request.Data == null)
                 return GenericResponse<string>.FailResponse("Loan request not found", 404);
 
             var loanRequest = request.Data;
 
             // Check if lender already approved
-            var alreadyApproved = await _loanRepository.GetApprovals(requestId, lenderId);
+            var alreadyApproved = await _loanRepository.GetApprovals(dto.RequestId, lenderId);
             if (alreadyApproved.Data)
                 return GenericResponse<string>.FailResponse("You have already approved this request.", 400);
 
             // Add approval
             var approval = new LoanApproval
             {
-                LoanRequestId = requestId,
+                LoanRequestId = dto.RequestId,
                 LenderId = lenderId
             };
 
             await _loanRepository.AddApprovalAsync(approval);
 
             // Check if enough approvals exist
-            var approvalCount = await _loanRepository.GetNumberOfApprovals(requestId);
+            var approvalCount = await _loanRepository.GetNumberOfApprovals(dto.RequestId);
 
             if (approvalCount.Data >= 3 && loanRequest.RequestStatus != LoanRequestStatus.Approved.ToString())
             {
                 loanRequest.RequestStatus = LoanRequestStatus.Approved.ToString();
 
-                loanRequest.AdminComment = comment;
+                loanRequest.AdminComment = dto.Comment;
 
                 // Fetch the pool to get the interest rate
                 var pool = await _lenderpoolRepo.GetByIdAsync(loanRequest.MatchedPoolId);
@@ -140,7 +168,7 @@ namespace LendPool.Application.Services.Implementation
                     LoanStatus = LoanStatus.Active.ToString(),
                     TotalRepaid = 0,
                     IsActive = true,
-                    LoanRequestId = requestId
+                    LoanRequestId = dto.RequestId,
                 };
 
                 await _loanRepository.AddLoanAsync(loan);
