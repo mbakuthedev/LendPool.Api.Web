@@ -44,7 +44,9 @@ namespace LendPool.Api.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
-        [HttpPost("kyc-borrower")]
+
+        [Authorize(Roles = "Borrower")]
+        [HttpPost("user/kyc-borrower")]
         public async Task<IActionResult> UpdateBorrowerKyc([FromBody] BorrowerKycUpdateRequest request)
         {
           
@@ -66,7 +68,7 @@ namespace LendPool.Api.Controllers
 
 
         [Authorize(Roles = "Lender")]
-        [HttpPost("kyc-lender")]
+        [HttpPost("user/kyc-lender")]
         public async Task<IActionResult> UpdateLenderKyc([FromBody] LenderKycUpdateRequest request)
         {
             var resultData = await _authService.UpdateLenderKycAsync(request);

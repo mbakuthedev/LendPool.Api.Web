@@ -1,4 +1,5 @@
 using LendPool.Api.Extensions;
+using LendPool.Api.Middlewares;
 using LendPool.Application.Extensions;
 using LendPool.Domain.Data;
 using LendPool.Infrastructure.Extensions;
@@ -29,12 +30,23 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Delayed enabling of logging
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    RequestLoggingToggle.EnableLogging = true;
+    Console.WriteLine(" Request Logging Enabled");
+});
+
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 
 app.UseHttpsRedirection();
 

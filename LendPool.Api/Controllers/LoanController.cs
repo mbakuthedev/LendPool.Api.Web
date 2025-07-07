@@ -33,7 +33,9 @@ namespace LendPool.Api.Controllers
         private string GetUserId() =>
                 _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            [HttpPost("loan/request-loan")]
+
+        [Authorize(Roles = "Borrower")]
+         [HttpPost("loan/request-loan")]
         public async Task<IActionResult> RequestLoan([FromBody] LoanRequestDto dto)
         {
             var userId = GetUserId(); 
@@ -80,6 +82,7 @@ namespace LendPool.Api.Controllers
         //    return Ok("Loan rejected.");
         //}
 
+        [Authorize(Roles = "Borrower")]
         [HttpGet("loan/my-loans")]
             public async Task<IActionResult> MyLoans()
             {
