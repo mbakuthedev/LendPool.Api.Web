@@ -14,9 +14,10 @@
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "ConnectionStrings_DefaultConnection": "Server=dpg-d1l977re5dus73fdoilg-a.oregon-postgres.render.com;Port=5432;Database=lendpool_api_db;User Id=lendpool_api_db_user;Password=8wBVnteEd2QbNhCaYUbYei61yjaLYsqd;Pooling=false;Timeout=300;CommandTimeout=300;Include Error Detail=true;Trust Server Certificate=true"
+        },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7243;http://localhost:5155"
     },

@@ -11,11 +11,16 @@ namespace LendPool.Domain.Models
     {
         public User()
         {
-            FullName = FirstName + " " +  LastName;
+            
         }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string FullName { get; set; }
+        public string FullName 
+        { 
+            get => $"{FirstName} {LastName}".Trim();
+            set => _fullName = value;
+        }
+        private string _fullName;
         public string Email { get; set; }
         public string PasswordHash { get; set; }
 
@@ -40,6 +45,7 @@ namespace LendPool.Domain.Models
         public ICollection<Transaction> Transactions { get; set; }
 
         public ICollection<LenderPoolMembership> LenderPoolMemberships { get; set; }
+        public ICollection<RefreshToken> RefreshTokens { get; set; }
 
     }
 }

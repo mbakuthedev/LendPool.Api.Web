@@ -180,7 +180,31 @@ namespace LendPool.Application.Services.Implementation
             return GenericResponse<string>.SuccessResponse($"Approval recorded. ({approvalCount.Data}/3)", 200);
         }
 
-       // add this to a transaction service
+        public async Task<GenericResponse<string>> RejectLoanAsync(string lenderId, RejectLoanRequestDto dto)
+        {
+            var request = await _loanRepository.GetLoanRequestByIdAsync(dto.RequestId);
+            if (request.Data == null)
+                return GenericResponse<string>.FailResponse("Loan request not found", 404);
+
+            var loanRequest = request.Data;
+
+            // Check if already rejected or approved
+            if (loanRequest.RequestStatus == LoanRequestStatus.Rejected.ToString())
+                return GenericResponse<string>.FailResponse("Loan request has already been rejected.", 400);
+
+            if (loanRequest.RequestStatus == LoanRequestStatus.Approved.ToString())
+                return GenericResponse<string>.FailResponse("Loan request has already been approved and cannot be rejected.", 400);
+
+            // Mark as rejected
+            loanRequest.RequestStatus = LoanRequestStatus.Rejected.ToString();
+            loanRequest.AdminComment = dto.Comment;
+
+            await _loanRepository.SaveChangesAsync();
+
+            return GenericResponse<string>.SuccessResponse("Loan request rejected successfully.", 200);
+        }
+
+        // add this to a transaction service
         public async Task<GenericResponse<Transaction>> AddTransactionAsync(Transaction transaction)
         {
             try

@@ -17,7 +17,7 @@ namespace LendPool.Api.Extensions
             {
                 services.AddSwaggerGen(c =>
                 {
-                    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
+                    c.SwaggerDoc("v1", new OpenApiInfo { Title = "LendpoolApi", Version = "v1" });
 
                     // JWT Authentication in Swagger
                     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

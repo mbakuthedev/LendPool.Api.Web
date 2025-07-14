@@ -21,16 +21,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LendPool.Application.Services.Implementation
-{   public class AuthService : IAuthService
+{       public class AuthService : IAuthService
     {
 
         private readonly IUserRepository _repo;
+        private readonly IRefreshTokenRepository _refreshTokenRepo;
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(IUserRepository repo, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+        public AuthService(IUserRepository repo, IRefreshTokenRepository refreshTokenRepo, IConfiguration config, IHttpContextAccessor httpContextAccessor)
         {
             _repo = repo;
+            _refreshTokenRepo = refreshTokenRepo;
             _config = config;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -53,6 +55,8 @@ namespace LendPool.Application.Services.Implementation
                 var email = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
                             ?? user.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
                 var role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+                var name = user.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value
+                           ?? user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -64,6 +68,7 @@ namespace LendPool.Application.Services.Implementation
                     UserId = userId,
                     Email = email,
                     Role = role,
+                    Name = name
                   //  Message = "User authenticated"
                 };
 
@@ -88,12 +93,17 @@ namespace LendPool.Application.Services.Implementation
                     return GenericResponse<AuthResponse>.FailResponse("Invalid credentials", 401);
                 }
 
+                // Revoke any existing refresh tokens for this user
+                await _refreshTokenRepo.RevokeAllUserTokensAsync(user.Id);
+
                 var token = GenerateJwtToken(user);
+                var refreshToken = await GenerateRefreshTokenAsync(user);
 
                 var authResponse = new AuthResponse
                 {
                     Token = token,
-                 
+                    RefreshToken = refreshToken.Token,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:ExpiresInMinutes"] ?? "60"))
                 };
 
                 return GenericResponse<AuthResponse>.SuccessResponse(authResponse, 200, "Login successful");
@@ -101,6 +111,56 @@ namespace LendPool.Application.Services.Implementation
             catch (Exception ex)
             {
                 return GenericResponse<AuthResponse>.FailResponse($"An error occurred: {ex.Message}", 500);
+            }
+        }
+
+        public async Task<GenericResponse<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request)
+        {
+            try
+            {
+                var refreshToken = await _refreshTokenRepo.GetByTokenAsync(request.RefreshToken);
+                
+                if (refreshToken == null || refreshToken.IsRevoked || refreshToken.ExpiresAt < DateTime.UtcNow)
+                {
+                    return GenericResponse<AuthResponse>.FailResponse("Invalid or expired refresh token", 401);
+                }
+
+                var user = refreshToken.User;
+                var newToken = GenerateJwtToken(user);
+                var newRefreshToken = await GenerateRefreshTokenAsync(user);
+
+                // Revoke the old refresh token
+                await _refreshTokenRepo.RevokeTokenAsync(request.RefreshToken);
+
+                var authResponse = new AuthResponse
+                {
+                    Token = newToken,
+                    RefreshToken = newRefreshToken.Token,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:ExpiresInMinutes"] ?? "60"))
+                };
+
+                return GenericResponse<AuthResponse>.SuccessResponse(authResponse, 200, "Token refreshed successfully");
+            }
+            catch (Exception ex)
+            {
+                return GenericResponse<AuthResponse>.FailResponse($"An error occurred: {ex.Message}", 500);
+            }
+        }
+
+        public async Task<GenericResponse<bool>> RevokeTokenAsync(string refreshToken)
+        {
+            try
+            {
+                var result = await _refreshTokenRepo.RevokeTokenAsync(refreshToken);
+                if (result)
+                {
+                    return GenericResponse<bool>.SuccessResponse(true, 200, "Token revoked successfully");
+                }
+                return GenericResponse<bool>.FailResponse("Token not found", 404);
+            }
+            catch (Exception ex)
+            {
+                return GenericResponse<bool>.FailResponse($"An error occurred: {ex.Message}", 500);
             }
         }
 
@@ -178,7 +238,7 @@ namespace LendPool.Application.Services.Implementation
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role),
-            new Claim("FullName", $"{user.FirstName} {user.LastName}")
+            new Claim("FullName", user.FullName)
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -193,6 +253,19 @@ namespace LendPool.Application.Services.Implementation
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private async Task<RefreshToken> GenerateRefreshTokenAsync(User user)
+        {
+            var refreshToken = new RefreshToken
+            {
+                Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                ExpiresAt = DateTime.UtcNow.AddDays(7), // Refresh tokens last 7 days
+                UserId = user.Id
+            };
+
+            await _refreshTokenRepo.CreateAsync(refreshToken);
+            return refreshToken;
         }
         
     }

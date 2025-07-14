@@ -31,7 +31,8 @@ namespace LendPool.Domain.Data
         public DbSet<PoolWithdrawal> PoolWithdrawals { get; set; }
         public DbSet<InterestPayment> InterestPayments { get; set; }
         public DbSet<LenderPoolMembership> LenderPoolMemberships { get; set; }
-
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<LenderPoolJoinRequest> LenderPoolJoinRequests { get; set; }
         public DbSet<LoanApproval> LoanApprovals { get; set; }
 
 
@@ -57,7 +58,7 @@ namespace LendPool.Domain.Data
                 Email = "admin@lendpool.com",
                 PasswordHash = "$2a$11$.7M3DWXSh2PA6ETF4DyBLuKwDj1SAY7.aEfcj3a7x7q8ClPMT42bO", // Hashed password for "Admin@123"
                 Role = UserRole.Admin.ToString(),
-                FullName = "Admin",
+                FullName = "Admin Gbemidebe",
                 IsKycVerified = false,
                 DocumentId = null,
                 DocumentUrl = null

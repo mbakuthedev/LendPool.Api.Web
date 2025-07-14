@@ -17,13 +17,16 @@ namespace LendPool.Infrastructure.Extensions
 
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration config)
         {
+            var connectionStrin = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
 
-                services.AddDbContext<ApplicationDbContext>(options =>
-           options.UseNpgsql(
-               config.GetConnectionString("RenderConnection"),
-               x => x.MigrationsAssembly("LendPool.Infrastructure") 
-       )
-   );
+            var connectionString = config.GetConnectionString("RenderConnection");
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(
+                    connectionString,
+                    x => x.MigrationsAssembly("LendPool.Infrastructure")
+                )
+            );
 
 
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
@@ -32,7 +35,8 @@ namespace LendPool.Infrastructure.Extensions
                 .AddScoped<ILendpoolRepository, LendpoolRepository>()
                 .AddScoped<IRepaymentRepository, RepaymentRepository>()
                 .AddScoped<ILoanRepository, LoanRepository>()
-                .AddScoped<IWalletRepository, WalletRepository>();
+                .AddScoped<IWalletRepository, WalletRepository>()
+                .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
                // .AddScoped<>;
              
             return services;

@@ -16,7 +16,8 @@ namespace LendPool.Application.Services.Interfaces
         Task<GenericResponse<bool>> UpdateLenderKycAsync(LenderKycUpdateRequest request);
         Task<GenericResponse<string>> RegisterAsync(RegisterRequest request);
         Task<GenericResponse<AuthResponse>> LoginAsync(LoginRequest request);
-
+        Task<GenericResponse<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request);
+        Task<GenericResponse<bool>> RevokeTokenAsync(string refreshToken);
         Task<GenericResponse<CurrentUserDto>> GetCurrentUser();
     }
 }

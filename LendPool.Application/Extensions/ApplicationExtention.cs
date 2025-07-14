@@ -14,16 +14,12 @@ namespace LendPool.Application.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
-            services.AddScoped<IAuthService, AuthService>()
-                .AddScoped<ILenderpoolService, LenderpoolService>()
-                .AddScoped<IInterestPaymentService, InterestPaymentService>()
-                .AddScoped<IRepaymentService, RepaymentService>()
-                .AddScoped<IUserService, UserService>()
-                .AddScoped<ILoanService, LoanService>()
-
-                .AddScoped<IWalletService,WalletService>();
-                //.AddScoped<IInterestPaymentService, Inrwe>;
-
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IBorrowerAnalyticsService, BorrowerAnalyticsService>();
+            services.AddScoped<IAdminLoanMatchingService, AdminLoanMatchingService>();
+            services.AddScoped<ILenderDashboardService, LenderDashboardService>();
+            services.AddScoped<ILenderPoolJoinRequestService, LenderPoolJoinRequestService>();
+            // Add other application services here
             return services;
         }
     }

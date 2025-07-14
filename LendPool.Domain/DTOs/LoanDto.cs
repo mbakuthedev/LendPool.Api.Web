@@ -52,7 +52,16 @@ namespace LendPool.Domain.DTOs
         public int DurationInMonths { get; set; }
         public string MatchedPoolId { get; set; }
     }
+
     public class ApproveLoanRequestDto
+    {
+        [Required]
+        public string RequestId { get; set; }
+
+        public string Comment { get; set; }
+    }
+      
+    public class RejectLoanRequestDto
     {
         [Required]
         public string RequestId { get; set; }

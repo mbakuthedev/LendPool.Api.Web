@@ -75,6 +75,26 @@ namespace LendPool.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Lender")]
+        [HttpPut("loan/reject-loan")]
+        public async Task<IActionResult> RejectLoan([FromBody] RejectLoanRequestDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid approval input");
+
+            var lenderId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(lenderId))
+                return Unauthorized("Lender not authenticated");
+
+            var result = await _loanService.RejectLoanAsync(lenderId, dto);
+
+            if (!result.Success)
+                return BadRequest(result.Message);
+
+            return Ok(result);
+        }
+
         //[HttpPut("{id}/reject")]
         //public async Task<IActionResult> RejectLoan(Guid id, [FromBody] string reason)
         //{

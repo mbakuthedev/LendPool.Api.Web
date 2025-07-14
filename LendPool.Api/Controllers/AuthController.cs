@@ -16,13 +16,41 @@ namespace LendPool.Api.Controllers
         {
             _authService = authService;
         }
-        [HttpPost("login")]
+        [HttpPost("auth/login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
-                var token = await _authService.LoginAsync(request);
-                return Ok(new { token });
+                var result = await _authService.LoginAsync(request);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("auth/refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            try
+            {
+                var result = await _authService.RefreshTokenAsync(request);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("auth/revoke-token")]
+        public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest request)
+        {
+            try
+            {
+                var result = await _authService.RevokeTokenAsync(request.RefreshToken);
+                return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -46,7 +74,7 @@ namespace LendPool.Api.Controllers
         }
 
         [Authorize(Roles = "Borrower")]
-        [HttpPost("user/kyc-borrower")]
+        [HttpPost("user/update-kyc-borrower")]
         public async Task<IActionResult> UpdateBorrowerKyc([FromBody] BorrowerKycUpdateRequest request)
         {
           
@@ -58,8 +86,9 @@ namespace LendPool.Api.Controllers
             return Ok("Borrower KYC updated");
         }
 
-        [HttpGet]
+        [HttpGet("user/me")]
         [Authorize]
+
         public IActionResult GetProfile()
         {
             var fullName = User.FindFirst("FullName")?.Value;
@@ -79,7 +108,7 @@ namespace LendPool.Api.Controllers
             return Ok(resultData.Message);
         }
 
-        [HttpPost("register")]
+        [HttpPost("auth/register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
             var result = await _authService.RegisterAsync(request);
