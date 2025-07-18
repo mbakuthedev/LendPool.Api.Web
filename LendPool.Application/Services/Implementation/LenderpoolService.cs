@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LendPool.Application.Services.Interfaces;
+using LendPool.Application.DTOs;
 using LendPool.Domain.DTOs;
 using LendPool.Domain.Enums;
 using LendPool.Domain.Models;
@@ -17,12 +18,14 @@ namespace LendPool.Application.Services.Implementation
         private readonly ILendpoolRepository _poolRepository;
         private readonly IWalletService _walletService;
         private readonly IUserService _userService;
+        private readonly ILenderInvestmentService _lenderInvestmentService;
 
-        public LenderpoolService(ILendpoolRepository poolRepository, IWalletService walletService, IUserService userService)
+        public LenderpoolService(ILendpoolRepository poolRepository, IWalletService walletService, IUserService userService, ILenderInvestmentService lenderInvestmentService)
         {
             _poolRepository = poolRepository;
             _walletService = walletService;
             _userService = userService;
+            _lenderInvestmentService = lenderInvestmentService;
         }
 
         public async Task<GenericResponse<string>> AddUserToPoolAsync(AddUserToPoolDto dto, string actingUserId)
@@ -108,27 +111,80 @@ namespace LendPool.Application.Services.Implementation
 
         public async Task<GenericResponse<bool>> ContributeToPoolAsync(ContributeToPoolDto dto)
         {
-            var wallet = await _walletService.GetWalletByUserIdAsync(dto.UserId);
-
-            if (wallet == null || wallet.Data == null)
-                return GenericResponse<bool>.FailResponse("Wallet not found for the specified user.", 404);
-
-            if ( wallet.Data.Balance < dto.Amount)
-                return GenericResponse<bool>.FailResponse("Balance is too low to perform transaction", 400);
-
-            var success = await _walletService.DebitAsync(wallet.Data.Id, dto.Amount);
-            if (!success) return  GenericResponse<bool>.FailResponse("Failed to debit wallet", 400);
-            ;
-
-            var contribution = new PoolContribution
+            try
             {
-                LenderId = dto.UserId,
-                PoolId = dto.PoolId,
-                Amount = dto.Amount
-            };
+                var wallet = await _walletService.GetWalletByUserIdAsync(dto.UserId);
 
+                if (wallet == null || wallet.Data == null)
+                    return GenericResponse<bool>.FailResponse("Wallet not found for the specified user.", 404);
 
-            return await _poolRepository.ContributeAsync(contribution);
+                if (wallet.Data.Balance < dto.Amount)
+                    return GenericResponse<bool>.FailResponse("Balance is too low to perform transaction", 400);
+
+                // Step 1: Debit wallet first
+                var walletDebitSuccess = await _walletService.DebitAsync(wallet.Data.Id, dto.Amount);
+                if (!walletDebitSuccess)
+                {
+                    return GenericResponse<bool>.FailResponse("Failed to debit wallet", 400);
+                }
+
+                // Step 2: Create pool contribution
+                var contribution = new PoolContribution
+                {
+                    LenderId = dto.UserId,
+                    PoolId = dto.PoolId,
+                    Amount = dto.Amount
+                };
+
+                var contributionResult = await _poolRepository.ContributeAsync(contribution);
+                if (!contributionResult.Success)
+                {
+                    // Rollback wallet debit if contribution fails
+                    await _walletService.CreditAsync(wallet.Data.Id, dto.Amount);
+                    return contributionResult;
+                }
+
+                // Step 3: Create lender investment
+                var investmentDto = new CreateLenderInvestmentDto
+                {
+                    LenderId = dto.UserId,
+                    PoolId = dto.PoolId,
+                    InvestmentAmount = dto.Amount
+                };
+
+                var investmentResult = await _lenderInvestmentService.CreateInvestmentAsync(investmentDto);
+                if (!investmentResult.Success)
+                {
+                    // Rollback both wallet debit and pool contribution if investment fails
+                    await _walletService.CreditAsync(wallet.Data.Id, dto.Amount);
+                    
+                    // Rollback pool contribution by withdrawing the amount
+                    await _poolRepository.WithdrawAsync(dto.PoolId, dto.Amount);
+                    
+                    return GenericResponse<bool>.FailResponse($"Transaction failed: {investmentResult.Message}. All changes have been rolled back.", 500);
+                }
+
+                return GenericResponse<bool>.SuccessResponse(true, 200, "Contribution and investment tracking successful");
+            }
+            catch (Exception ex)
+            {
+                // In case of any unexpected error, attempt to rollback wallet debit
+                try
+                {
+                    var wallet = await _walletService.GetWalletByUserIdAsync(dto.UserId);
+                    if (wallet?.Data != null)
+                    {
+                        await _walletService.CreditAsync(wallet.Data.Id, dto.Amount);
+                    }
+                }
+                catch (Exception rollbackEx)
+                {
+                    // Log rollback failure but don't throw - original exception is more important
+                    // In a production system, you'd want to log this to a monitoring system
+                }
+
+                return GenericResponse<bool>.FailResponse($"Transaction failed with error: {ex.Message}. Attempted rollback.", 500);
+            }
         }
         public async Task<GenericResponse<IEnumerable<LoanDto>>> GetActiveLoansByPoolAsync(string poolId)
         {
@@ -202,21 +258,47 @@ namespace LendPool.Application.Services.Implementation
 
         public async Task<GenericResponse<bool>> WithdrawFromPoolAsync(WithdrawFromPoolDto dto)
         {
-            // Get available balance for user in the pool
-            var available = await _poolRepository.GetAvailableBalanceAsync(dto.PoolId, dto.UserId);
+            try
+            {
+                // Get available balance for user in the pool
+                var available = await _poolRepository.GetAvailableBalanceAsync(dto.PoolId, dto.UserId);
 
-            if (available < dto.Amount)
-                return GenericResponse<bool>.FailResponse("Insufficient balance in the pool.", 400);
+                if (available < dto.Amount)
+                    return GenericResponse<bool>.FailResponse("Insufficient balance in the pool.", 400);
 
-            var creditSuccess = await _walletService.CreditAsync(dto.UserWalletId, dto.Amount);
-            if (!creditSuccess)
-                return GenericResponse<bool>.FailResponse("Failed to credit user wallet.", 500);
+                // Step 1: Credit wallet first
+                var creditSuccess = await _walletService.CreditAsync(dto.UserWalletId, dto.Amount);
+                if (!creditSuccess)
+                {
+                    return GenericResponse<bool>.FailResponse("Failed to credit user wallet.", 500);
+                }
 
-            var withdrawSuccess = await _poolRepository.RecordWithdrawalAsync(dto.PoolId, dto.UserId, dto.Amount);
-            if (!withdrawSuccess.Data)
-                return GenericResponse<bool>.FailResponse("Failed to record withdrawal in pool.", 500);
+                // Step 2: Record withdrawal in pool
+                var withdrawSuccess = await _poolRepository.RecordWithdrawalAsync(dto.PoolId, dto.UserId, dto.Amount);
+                if (!withdrawSuccess.Data)
+                {
+                    // Rollback wallet credit if withdrawal recording fails
+                    await _walletService.DebitAsync(dto.UserWalletId, dto.Amount);
+                    return GenericResponse<bool>.FailResponse("Failed to record withdrawal in pool.", 500);
+                }
 
-            return GenericResponse<bool>.SuccessResponse(true, 200, "Withdrawal successful.");
+                return GenericResponse<bool>.SuccessResponse(true, 200, "Withdrawal successful.");
+            }
+            catch (Exception ex)
+            {
+                // In case of any unexpected error, attempt to rollback wallet credit
+                try
+                {
+                    await _walletService.DebitAsync(dto.UserWalletId, dto.Amount);
+                }
+                catch (Exception rollbackEx)
+                {
+                    // Log rollback failure but don't throw - original exception is more important
+                    // In a production system, you'd want to log this to a monitoring system
+                }
+
+                return GenericResponse<bool>.FailResponse($"Withdrawal failed with error: {ex.Message}. Attempted rollback.", 500);
+            }
         }
 
         public async Task<GenericResponse<PoolSummaryDto>> GetPoolSummaryAsync(string poolId)
@@ -233,7 +315,7 @@ namespace LendPool.Application.Services.Implementation
             return GenericResponse<PoolSummaryDto>.SuccessResponse(summary.Data, 200, "Pool summary retrieved successfully");
         }
 
-        public async Task<GenericResponse<LenderPoolDto>> GetPoolById(string poolId)
+        public async Task<GenericResponse<LendPool.Domain.DTOs.LenderPoolDto>> GetPoolById(string poolId)
         {
            var pool = await _poolRepository.GetPoolById(poolId);
 
@@ -241,9 +323,9 @@ namespace LendPool.Application.Services.Implementation
 
             if (poolData == null)
             {
-                return GenericResponse<LenderPoolDto>.FailResponse("Lender pool not found", 404);
+                return GenericResponse<LendPool.Domain.DTOs.LenderPoolDto>.FailResponse("Lender pool not found", 404);
             }
-            var poolDto = new LenderPoolDto
+            var poolDto = new LendPool.Domain.DTOs.LenderPoolDto
             {
                 Name = poolData.Name,
                 Description = poolData.Description,
@@ -251,7 +333,7 @@ namespace LendPool.Application.Services.Implementation
                 MaximumAmount = poolData.MaximumAmount,
                 MinimumAmount = poolData.MinimumAmount,
             };
-            return GenericResponse<LenderPoolDto>.SuccessResponse(poolDto, 200, "Successfully fetched pool");
+            return GenericResponse<LendPool.Domain.DTOs.LenderPoolDto>.SuccessResponse(poolDto, 200, "Successfully fetched pool");
         }
     }
 }

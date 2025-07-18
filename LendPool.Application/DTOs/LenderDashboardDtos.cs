@@ -7,6 +7,7 @@ namespace LendPool.Application.DTOs
         public string Pool { get; set; }
         public string Status { get; set; }
         public string Date { get; set; }
+
     }
 
     public class LenderRepaymentDto

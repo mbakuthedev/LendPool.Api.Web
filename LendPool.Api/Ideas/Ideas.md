@@ -125,3 +125,5 @@ Thinking about making it a b2b platform, where you look for pools with lower int
 
 Borrower requests loan from pool -> it goes through an approval matrix -> after approval, loan is created -> borrower can repay loan -> lender can withdraw interest and principal
 
+
+

@@ -28,7 +28,7 @@ namespace LendPool.Api.Controllers
         public async Task<IActionResult> AssignPoolToLoanRequest(string loanRequestId, [FromBody] AssignPoolRequestDto dto)
         {
             var result = await _service.AssignPoolToLoanRequestAsync(loanRequestId, dto.PoolId);
-            return result ? Ok(new { success = true }) : BadRequest(new { success = false });
+            return result.Data ? Ok(new { success = true }) : BadRequest(new { success = false });
         }
     }
 } 

@@ -34,6 +34,12 @@ namespace LendPool.Domain.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<LenderPoolJoinRequest> LenderPoolJoinRequests { get; set; }
         public DbSet<LoanApproval> LoanApprovals { get; set; }
+        public DbSet<Disbursement> Disbursements { get; set; }
+        public DbSet<FundUsage> FundUsages { get; set; }
+        public DbSet<LenderInvestment> LenderInvestments { get; set; }
+        public DbSet<PoolTenor> PoolTenors { get; set; }
+        public DbSet<LoanReconciliation> LoanReconciliations { get; set; }
+        public DbSet<ReconciliationItem> ReconciliationItems { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -65,6 +71,12 @@ namespace LendPool.Domain.Data
 
 
             });
+
+            modelBuilder.Entity<Disbursement>()
+                .HasMany(d => d.FundUsages)
+                .WithOne()
+                .HasForeignKey(fu => fu.DisbursementId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
     }

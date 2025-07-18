@@ -1,0 +1,618 @@
+{
+  "info": {
+    "_postman_id": "b1e2c3d4-5678-1234-9abc-def012345678",
+    "name": "LendPool API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for LendPool API endpoints. Update the baseUrl and tokens as needed."
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"string\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"string\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "Revoke Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/revoke-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "revoke-token"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "current"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Borrower KYC",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* BorrowerKycUpdateRequest fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/update-kyc-borrower",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "update-kyc-borrower"]
+            }
+          }
+        },
+        {
+          "name": "Update Lender KYC",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* LenderKycUpdateRequest fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/kyc-lender",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "kyc-lender"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan",
+      "item": [
+        {
+          "name": "Get All Pools (Borrower)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/borrower/get-all-pools",
+              "host": ["{{baseUrl}}"],
+              "path": ["borrower", "get-all-pools"]
+            }
+          }
+        },
+        {
+          "name": "Request Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* LoanRequestDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loan/request-loan",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "request-loan"]
+            }
+          }
+        },
+        {
+          "name": "My Loan Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loan/my-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "my-requests"]
+            }
+          }
+        },
+        {
+          "name": "Approve Loan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* ApproveLoanRequestDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loan/approve-loan",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "approve-loan"]
+            }
+          }
+        },
+        {
+          "name": "Reject Loan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* RejectLoanRequestDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loan/reject-loan",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "reject-loan"]
+            }
+          }
+        },
+        {
+          "name": "My Loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loan/my-loans",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "my-loans"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loan/get-loan-by-id?id={{loanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "get-loan-by-id"],
+              "query": [
+                { "key": "id", "value": "{{loanId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Loans By Pool Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loan/get-loans-by-pool-id?id={{poolId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["loan", "get-loans-by-pool-id"],
+              "query": [
+                { "key": "id", "value": "{{poolId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lendpool",
+      "item": [
+        {
+          "name": "Create Pool",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* CreateLenderPoolDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lender/create-pool",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "create-pool"]
+            }
+          }
+        },
+        {
+          "name": "Get Pool By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lender/get-pool-by-id?poolId={{poolId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "get-pool-by-id"],
+              "query": [
+                { "key": "poolId", "value": "{{poolId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add User To Pool (SuperLender)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* AddUserToPoolDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lender/{{poolId}}/add-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "{{poolId}}", "add-user"]
+            }
+          }
+        },
+        {
+          "name": "Get All Pools (Lender)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lender/get-all-pools",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "get-all-pools"]
+            }
+          }
+        },
+        {
+          "name": "Contribute To Pool",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* ContributeToPoolDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lender/contribute/{{poolId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "contribute", "{{poolId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Loans By Pool",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lender/loans/{{poolId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "loans", "{{poolId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Pool Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lender/summary/{{poolId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "summary", "{{poolId}}"]
+            }
+          }
+        },
+        {
+          "name": "Withdraw From Pool",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* WithdrawFromPoolDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lender/withdraw/{{poolId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lender", "withdraw", "{{poolId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Credit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* AdminWalletDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/credit",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "credit"]
+            }
+          }
+        },
+        {
+          "name": "Admin Debit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  /* AdminWalletDto fields */\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/debit",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "debit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get My Wallet",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get My Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Credit My Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/credit?amount={{amount}}&reference={{reference}}&description={{description}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "credit"],
+              "query": [
+                { "key": "amount", "value": "{{amount}}" },
+                { "key": "reference", "value": "{{reference}}" },
+                { "key": "description", "value": "{{description}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Debit My Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/debit?amount={{amount}}&reference={{reference}}&description={{description}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "debit"],
+              "query": [
+                { "key": "amount", "value": "{{amount}}" },
+                { "key": "reference", "value": "{{reference}}" },
+                { "key": "description", "value": "{{description}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/transfer?toUserId={{toUserId}}&amount={{amount}}&reference={{reference}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "transfer"],
+              "query": [
+                { "key": "toUserId", "value": "{{toUserId}}" },
+                { "key": "amount", "value": "{{amount}}" },
+                { "key": "reference", "value": "{{reference}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get My Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/transactions/{{transactionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "transactions", "{{transactionId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "loanId", "value": "" },
+    { "key": "poolId", "value": "" },
+    { "key": "transactionId", "value": "" },
+    { "key": "amount", "value": "" },
+    { "key": "reference", "value": "" },
+    { "key": "description", "value": "" },
+    { "key": "toUserId", "value": "" }
+  ]
+} 

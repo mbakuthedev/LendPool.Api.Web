@@ -40,9 +40,16 @@ namespace LendPool.Application.Services.Implementation
 
         public async Task<bool> CreditAsync(string userId, decimal amount, string reference = null, string description = null)
         {
+            _logger.LogInformation("Crediting user {UserId} with {Amount}", userId, amount);
+            
             var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
-            if (wallet == null) return false;
+            if (wallet == null) 
+            {
+                _logger.LogWarning("Wallet not found for user {UserId}", userId);
+                return false;
+            }
 
+            var originalBalance = wallet.Balance;
             wallet.Balance += amount;
 
             var transaction = new WalletTransaction
@@ -54,15 +61,60 @@ namespace LendPool.Application.Services.Implementation
                 Description = description ?? "Wallet credit"
             };
 
-            return await _walletRepository.UpdateWalletAsync(wallet) &&
-                   await _walletRepository.AddTransactionAsync(transaction);
+            try
+            {
+                // Step 1: Update wallet balance
+                var walletUpdated = await _walletRepository.UpdateWalletAsync(wallet);
+                if (!walletUpdated)
+                {
+                    _logger.LogError("Failed to update wallet balance for user {UserId}", userId);
+                    return false;
+                }
+
+                // Step 2: Add transaction record
+                var transactionAdded = await _walletRepository.AddTransactionAsync(transaction);
+                if (!transactionAdded)
+                {
+                    _logger.LogError("Failed to add transaction record for user {UserId}, rolling back wallet balance", userId);
+                    // Rollback wallet balance
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                    return false;
+                }
+
+                _logger.LogInformation("Successfully credited user {UserId} with {Amount}", userId, amount);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during credit operation for user {UserId}", userId);
+                // Rollback wallet balance if exception occurs
+                try
+                {
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "Failed to rollback wallet balance for user {UserId}", userId);
+                }
+                return false;
+            }
         }
 
         public async Task<bool> DebitAsync(string userId, decimal amount, string reference = null, string description = null)
         {
+            _logger.LogInformation("Debiting user {UserId} with {Amount}", userId, amount);
+            
             var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
-            if (wallet == null || wallet.Balance < amount) return false;
+            if (wallet == null || wallet.Balance < amount) 
+            {
+                _logger.LogWarning("Insufficient funds or wallet not found for user {UserId}. Balance: {Balance}, Requested: {Amount}", 
+                    userId, wallet?.Balance ?? 0, amount);
+                return false;
+            }
 
+            var originalBalance = wallet.Balance;
             wallet.Balance -= amount;
 
             var transaction = new WalletTransaction
@@ -74,8 +126,45 @@ namespace LendPool.Application.Services.Implementation
                 Description = description ?? "Wallet debit"
             };
 
-            return await _walletRepository.UpdateWalletAsync(wallet) &&
-                   await _walletRepository.AddTransactionAsync(transaction);
+            try
+            {
+                // Step 1: Update wallet balance
+                var walletUpdated = await _walletRepository.UpdateWalletAsync(wallet);
+                if (!walletUpdated)
+                {
+                    _logger.LogError("Failed to update wallet balance for user {UserId}", userId);
+                    return false;
+                }
+
+                // Step 2: Add transaction record
+                var transactionAdded = await _walletRepository.AddTransactionAsync(transaction);
+                if (!transactionAdded)
+                {
+                    _logger.LogError("Failed to add transaction record for user {UserId}, rolling back wallet balance", userId);
+                    // Rollback wallet balance
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                    return false;
+                }
+
+                _logger.LogInformation("Successfully debited user {UserId} with {Amount}", userId, amount);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during debit operation for user {UserId}", userId);
+                // Rollback wallet balance if exception occurs
+                try
+                {
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "Failed to rollback wallet balance for user {UserId}", userId);
+                }
+                return false;
+            }
         }
 
         public async Task<decimal> GetBalanceAsync(string userId)
@@ -86,16 +175,35 @@ namespace LendPool.Application.Services.Implementation
 
         public async Task<bool> TransferAsync(string fromUserId, string toUserId, decimal amount, string reference = null)
         {
+            _logger.LogInformation("Initiating transfer of {Amount} from user {FromUserId} to user {ToUserId}", amount, fromUserId, toUserId);
+            
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-            var debitSuccess = await DebitAsync(fromUserId, amount, reference, $"Transfer to {toUserId}");
-            if (!debitSuccess) return false;
+            try
+            {
+                var debitSuccess = await DebitAsync(fromUserId, amount, reference, $"Transfer to {toUserId}");
+                if (!debitSuccess)
+                {
+                    _logger.LogError("Failed to debit user {FromUserId} during transfer", fromUserId);
+                    return false;
+                }
 
-            var creditSuccess = await CreditAsync(toUserId, amount, reference, $"Transfer from {fromUserId}");
-            if (!creditSuccess) return false;
+                var creditSuccess = await CreditAsync(toUserId, amount, reference, $"Transfer from {fromUserId}");
+                if (!creditSuccess)
+                {
+                    _logger.LogError("Failed to credit user {ToUserId} during transfer, transaction will be rolled back", toUserId);
+                    return false;
+                }
 
-            scope.Complete();
-            return true;
+                scope.Complete();
+                _logger.LogInformation("Successfully completed transfer of {Amount} from user {FromUserId} to user {ToUserId}", amount, fromUserId, toUserId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during transfer operation from user {FromUserId} to user {ToUserId}", fromUserId, toUserId);
+                return false;
+            }
         }
 
 
@@ -132,6 +240,7 @@ namespace LendPool.Application.Services.Implementation
             var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
             if (wallet == null) return GenericResponse<bool>.FailResponse("Wallet not found", 404);
 
+            var originalBalance = wallet.Balance;
             wallet.Balance += amount;
             var txn = new WalletTransaction
             {
@@ -142,8 +251,45 @@ namespace LendPool.Application.Services.Implementation
                 Description = description ?? "Admin credit"
             };
 
-            var updated = await _walletRepository.UpdateWalletAsync(wallet) && await _walletRepository.AddTransactionAsync(txn);
-            return updated ? GenericResponse<bool>.SuccessResponse(true, 200) : GenericResponse<bool>.FailResponse("Transaction failed", 500);
+            try
+            {
+                // Step 1: Update wallet balance
+                var walletUpdated = await _walletRepository.UpdateWalletAsync(wallet);
+                if (!walletUpdated)
+                {
+                    _logger.LogError("Failed to update wallet balance for admin credit operation for user {UserId}", userId);
+                    return GenericResponse<bool>.FailResponse("Failed to update wallet balance", 500);
+                }
+
+                // Step 2: Add transaction record
+                var transactionAdded = await _walletRepository.AddTransactionAsync(txn);
+                if (!transactionAdded)
+                {
+                    _logger.LogError("Failed to add transaction record for admin credit operation for user {UserId}, rolling back wallet balance", userId);
+                    // Rollback wallet balance
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                    return GenericResponse<bool>.FailResponse("Failed to add transaction record", 500);
+                }
+
+                _logger.LogInformation("Successfully completed admin credit for user {UserId} with {Amount}", userId, amount);
+                return GenericResponse<bool>.SuccessResponse(true, 200);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during admin credit operation for user {UserId}", userId);
+                // Rollback wallet balance if exception occurs
+                try
+                {
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "Failed to rollback wallet balance for admin credit operation for user {UserId}", userId);
+                }
+                return GenericResponse<bool>.FailResponse("Transaction failed", 500);
+            }
         }
 
         public async Task<GenericResponse<bool>> AdminDebitAsync(string userId, decimal amount, string reference = null, string description = null)
@@ -152,6 +298,7 @@ namespace LendPool.Application.Services.Implementation
             var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
             if (wallet == null || wallet.Balance < amount) return GenericResponse<bool>.FailResponse("Insufficient funds or wallet not found", 400);
 
+            var originalBalance = wallet.Balance;
             wallet.Balance -= amount;
             var txn = new WalletTransaction
             {
@@ -162,8 +309,45 @@ namespace LendPool.Application.Services.Implementation
                 Description = description ?? "Admin debit"
             };
 
-            var updated = await _walletRepository.UpdateWalletAsync(wallet) && await _walletRepository.AddTransactionAsync(txn);
-            return updated ? GenericResponse<bool>.SuccessResponse(true, 200) : GenericResponse<bool>.FailResponse("Transaction failed", 500);
+            try
+            {
+                // Step 1: Update wallet balance
+                var walletUpdated = await _walletRepository.UpdateWalletAsync(wallet);
+                if (!walletUpdated)
+                {
+                    _logger.LogError("Failed to update wallet balance for admin debit operation for user {UserId}", userId);
+                    return GenericResponse<bool>.FailResponse("Failed to update wallet balance", 500);
+                }
+
+                // Step 2: Add transaction record
+                var transactionAdded = await _walletRepository.AddTransactionAsync(txn);
+                if (!transactionAdded)
+                {
+                    _logger.LogError("Failed to add transaction record for admin debit operation for user {UserId}, rolling back wallet balance", userId);
+                    // Rollback wallet balance
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                    return GenericResponse<bool>.FailResponse("Failed to add transaction record", 500);
+                }
+
+                _logger.LogInformation("Successfully completed admin debit for user {UserId} with {Amount}", userId, amount);
+                return GenericResponse<bool>.SuccessResponse(true, 200);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during admin debit operation for user {UserId}", userId);
+                // Rollback wallet balance if exception occurs
+                try
+                {
+                    wallet.Balance = originalBalance;
+                    await _walletRepository.UpdateWalletAsync(wallet);
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "Failed to rollback wallet balance for admin debit operation for user {UserId}", userId);
+                }
+                return GenericResponse<bool>.FailResponse("Transaction failed", 500);
+            }
         }
 
         public async Task<GenericResponse<List<WalletTransaction>>> GetTransactionsAsync(string userId)
