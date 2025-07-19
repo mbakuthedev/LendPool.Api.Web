@@ -19,6 +19,7 @@ namespace LendPool.Application.Extensions
             services.AddScoped<IAdminLoanMatchingService, AdminLoanMatchingService>();
             services.AddScoped<ILenderDashboardService, LenderDashboardService>();
             services.AddScoped<ILenderPoolJoinRequestService, LenderPoolJoinRequestService>();
+            services.AddScoped<IVotingService, VotingService>();
             // Add other application services here
             return services;
         }

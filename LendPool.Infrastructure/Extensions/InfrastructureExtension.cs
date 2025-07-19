@@ -36,7 +36,8 @@ namespace LendPool.Infrastructure.Extensions
                 .AddScoped<IRepaymentRepository, RepaymentRepository>()
                 .AddScoped<ILoanRepository, LoanRepository>()
                 .AddScoped<IWalletRepository, WalletRepository>()
-                .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+                .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
+                .AddScoped<IVotingRepository, VotingRepository>();
                // .AddScoped<>;
              
             return services;

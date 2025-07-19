@@ -40,6 +40,7 @@ namespace LendPool.Domain.Data
         public DbSet<PoolTenor> PoolTenors { get; set; }
         public DbSet<LoanReconciliation> LoanReconciliations { get; set; }
         public DbSet<ReconciliationItem> ReconciliationItems { get; set; }
+        public DbSet<Vote> Votes { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

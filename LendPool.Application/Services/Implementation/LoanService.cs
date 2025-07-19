@@ -122,62 +122,8 @@ namespace LendPool.Application.Services.Implementation
 
         public async Task<GenericResponse<string>> ApproveLoanAsync(string lenderId,  ApproveLoanRequestDto dto)
         {
-            var request = await _loanRepository.GetLoanRequestByIdAsync(dto.RequestId);
-            if (request.Data == null)
-                return GenericResponse<string>.FailResponse("Loan request not found", 404);
-
-            var loanRequest = request.Data;
-
-            // Check if lender already approved
-            var alreadyApproved = await _loanRepository.GetApprovals(dto.RequestId, lenderId);
-            if (alreadyApproved.Data)
-                return GenericResponse<string>.FailResponse("You have already approved this request.", 400);
-
-            // Add approval
-            var approval = new LoanApproval
-            {
-                LoanRequestId = dto.RequestId,
-                LenderId = lenderId
-            };
-
-            await _loanRepository.AddApprovalAsync(approval);
-
-            // Check if enough approvals exist
-            var approvalCount = await _loanRepository.GetNumberOfApprovals(dto.RequestId);
-
-            if (approvalCount.Data >= 3 && loanRequest.RequestStatus != LoanRequestStatus.Approved.ToString())
-            {
-                loanRequest.RequestStatus = LoanRequestStatus.Approved.ToString();
-
-                loanRequest.AdminComment = dto.Comment;
-
-                // Fetch the pool to get the interest rate
-                var pool = await _lenderpoolRepo.GetByIdAsync(loanRequest.MatchedPoolId);
-             
-                if (pool.Data == null)
-                    return GenericResponse<string>.FailResponse("Matched pool not found.", 404);
-
-                var loan = new Loan
-                {
-                    UserId = loanRequest.BorrowerId,
-                    PoolId = loanRequest.MatchedPoolId,
-                    Amount = loanRequest.Amount,
-                    InterestRate = pool.Data.InterestRate,
-                    StartDate = DateTime.UtcNow,
-                    DueDate = DateTime.UtcNow.AddDays(loanRequest.TenureInDays),
-                    LoanStatus = LoanStatus.Active.ToString(),
-                    TotalRepaid = 0,
-                    IsActive = true,
-                    LoanRequestId = dto.RequestId,
-                };
-
-                await _loanRepository.AddLoanAsync(loan);
-                await _loanRepository.SaveChangesAsync();
-
-                return GenericResponse<string>.SuccessResponse("Loan approved and disbursed.", 200);
-            }
-
-            return GenericResponse<string>.SuccessResponse($"Approval recorded. ({approvalCount.Data}/3)", 200);
+            // This method is deprecated. Use the voting system instead.
+            return GenericResponse<string>.FailResponse("Please use the voting system to approve loan requests. Use POST /api/voting/cast-vote endpoint.", 400);
         }
 
         public async Task<GenericResponse<string>> RejectLoanAsync(string lenderId, RejectLoanRequestDto dto)
