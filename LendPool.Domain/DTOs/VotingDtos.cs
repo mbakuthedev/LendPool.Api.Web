@@ -8,17 +8,18 @@ namespace LendPool.Domain.DTOs
     public class CastVoteDto
     {
         [Required]
-        public string LoanRequestId { get; set; }
-        
+        public string OperationId { get; set; } // ID of the operation (loan, rule, etc.)
         [Required]
-        public VoteType VoteType { get; set; }
-        
+        public VoteOperationType OperationType { get; set; }
+        [Required]
+        public string VoteType { get; set; } // Approve, Reject, Abstain
         public string? Comment { get; set; }
     }
 
     public class VoteResultDto
     {
-        public string LoanRequestId { get; set; }
+        public string OperationId { get; set; }
+        public VoteOperationType OperationType { get; set; }
         public int TotalVotes { get; set; }
         public int ApproveVotes { get; set; }
         public int RejectVotes { get; set; }
@@ -36,7 +37,7 @@ namespace LendPool.Domain.DTOs
     {
         public string LenderId { get; set; }
         public string LenderName { get; set; }
-        public VoteType VoteType { get; set; }
+        public string VoteType { get; set; }
         public string? Comment { get; set; }
         public DateTime VotedAt { get; set; }
     }

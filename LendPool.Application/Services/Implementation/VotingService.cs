@@ -31,26 +31,31 @@ namespace LendPool.Application.Services.Implementation
         {
             try
             {
-                // Check if loan request exists
-                var loanRequest = await _loanRepository.GetLoanRequestByIdAsync(dto.LoanRequestId);
-                if (loanRequest.Data == null)
-                    return GenericResponse<string>.FailResponse("Loan request not found", 404);
-
-                // Check if lender is a member of the pool
-                var isPoolMember = await _lenderpoolRepository.IsUserInPoolAsync(lenderId, loanRequest.Data.MatchedPoolId);
-                if (!isPoolMember)
-                    return GenericResponse<string>.FailResponse("You are not a member of this pool", 403);
+                // For LoanApproval, check if operation exists and pool membership
+                string poolId = null;
+                if (dto.OperationType == VoteOperationType.LoanApproval)
+                {
+                    var loanRequest = await _loanRepository.GetLoanRequestByIdAsync(dto.OperationId);
+                    if (loanRequest.Data == null)
+                        return GenericResponse<string>.FailResponse("Loan request not found", 404);
+                    poolId = loanRequest.Data.MatchedPoolId;
+                    var isPoolMember = await _lenderpoolRepository.IsUserInPoolAsync(lenderId, poolId);
+                    if (!isPoolMember)
+                        return GenericResponse<string>.FailResponse("You are not a member of this pool", 403);
+                }
+                // For other operation types, you may want to add similar checks
 
                 // Check if already voted
-                var hasVoted = await _votingRepository.HasVotedAsync(lenderId, dto.LoanRequestId);
+                var hasVoted = await _votingRepository.HasVotedAsync(lenderId, dto.OperationId, dto.OperationType);
                 if (hasVoted.Data)
-                    return GenericResponse<string>.FailResponse("You have already voted on this request", 400);
+                    return GenericResponse<string>.FailResponse("You have already voted on this operation", 400);
 
                 // Create vote
                 var vote = new Vote
                 {
                     Id = Guid.NewGuid().ToString(),
-                    LoanRequestId = dto.LoanRequestId,
+                    OperationId = dto.OperationId,
+                    OperationType = dto.OperationType,
                     LenderId = lenderId,
                     VoteType = dto.VoteType,
                     Comment = dto.Comment,
@@ -60,85 +65,98 @@ namespace LendPool.Application.Services.Implementation
                 await _votingRepository.AddVoteAsync(vote);
 
                 // Check if voting is complete and determine result
-                var voteResult = await GetVoteResultAsync(dto.LoanRequestId);
-                if (voteResult.Success && voteResult.Data.IsApproved)
+                var voteResult = await GetVoteResultAsync(dto.OperationId, dto.OperationType);
+                if (voteResult.Success && voteResult.Data.IsApproved && dto.OperationType == VoteOperationType.LoanApproval)
                 {
                     // Auto-approve the loan request and create the loan
-                    loanRequest.Data.RequestStatus = LoanRequestStatus.Approved.ToString();
-                    loanRequest.Data.AdminComment = dto.Comment;
-
-                    // Fetch the pool to get the interest rate
-                    var pool = await _lenderpoolRepository.GetByIdAsync(loanRequest.Data.MatchedPoolId);
-                    if (pool.Data == null)
-                        return GenericResponse<string>.FailResponse("Matched pool not found.", 404);
-
-                    var loan = new Loan
+                    var loanRequest = await _loanRepository.GetLoanRequestByIdAsync(dto.OperationId);
+                    if (loanRequest.Data != null)
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        UserId = loanRequest.Data.BorrowerId,
-                        PoolId = loanRequest.Data.MatchedPoolId,
-                        Amount = loanRequest.Data.Amount,
-                        InterestRate = pool.Data.InterestRate,
-                        StartDate = DateTime.UtcNow,
-                        DueDate = DateTime.UtcNow.AddDays(loanRequest.Data.TenureInDays),
-                        LoanStatus = LoanStatus.Active.ToString(),
-                        TotalRepaid = 0,
-                        IsActive = true,
-                        LoanRequestId = dto.LoanRequestId,
-                    };
-
-                    await _loanRepository.AddLoanAsync(loan);
-                    await _loanRepository.SaveChangesAsync();
-
-                    return GenericResponse<string>.SuccessResponse("Vote recorded. Loan request approved by majority vote and loan created.", 200);
+                        loanRequest.Data.RequestStatus = LoanRequestStatus.Approved.ToString();
+                        loanRequest.Data.AdminComment = dto.Comment;
+                        var pool = await _lenderpoolRepository.GetByIdAsync(loanRequest.Data.MatchedPoolId);
+                        if (pool.Data == null)
+                            return GenericResponse<string>.FailResponse("Matched pool not found.", 404);
+                        var loan = new Loan
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            UserId = loanRequest.Data.BorrowerId,
+                            PoolId = loanRequest.Data.MatchedPoolId,
+                            Amount = loanRequest.Data.Amount,
+                            InterestRate = pool.Data.InterestRate,
+                            StartDate = DateTime.UtcNow,
+                            DueDate = DateTime.UtcNow.AddDays(loanRequest.Data.TenureInDays),
+                            LoanStatus = LoanStatus.Active.ToString(),
+                            TotalRepaid = 0,
+                            IsActive = true,
+                            LoanRequestId = dto.OperationId,
+                        };
+                        await _loanRepository.AddLoanAsync(loan);
+                        await _loanRepository.SaveChangesAsync();
+                        return GenericResponse<string>.SuccessResponse("Vote recorded. Loan request approved by majority vote and loan created.", 200);
+                    }
                 }
-                else if (voteResult.Success && voteResult.Data.IsRejected)
+                else if (voteResult.Success && voteResult.Data.IsRejected && dto.OperationType == VoteOperationType.LoanApproval)
                 {
-                    // Auto-reject the loan request
-                    loanRequest.Data.RequestStatus = LoanRequestStatus.Rejected.ToString();
-                    loanRequest.Data.AdminComment = dto.Comment;
-                    await _loanRepository.SaveChangesAsync();
-                    return GenericResponse<string>.SuccessResponse("Vote recorded. Loan request rejected by majority vote.", 200);
+                    var loanRequest = await _loanRepository.GetLoanRequestByIdAsync(dto.OperationId);
+                    if (loanRequest.Data != null)
+                    {
+                        loanRequest.Data.RequestStatus = LoanRequestStatus.Rejected.ToString();
+                        loanRequest.Data.AdminComment = dto.Comment;
+                        await _loanRepository.SaveChangesAsync();
+                        return GenericResponse<string>.SuccessResponse("Vote recorded. Loan request rejected by majority vote.", 200);
+                    }
                 }
 
                 return GenericResponse<string>.SuccessResponse("Vote recorded successfully", 200);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error casting vote for lender {LenderId} on request {RequestId}", lenderId, dto.LoanRequestId);
+                _logger.LogError(ex, "Error casting vote for lender {LenderId} on operation {OperationId}", lenderId, dto.OperationId);
                 return GenericResponse<string>.FailResponse("Error recording vote", 500);
             }
         }
 
-        public async Task<GenericResponse<VoteResultDto>> GetVoteResultAsync(string loanRequestId)
+        public async Task<GenericResponse<VoteResultDto>> GetVoteResultAsync(string operationId, VoteOperationType operationType)
         {
             try
             {
-                // Get loan request to find the pool
-                var loanRequest = await _loanRepository.GetLoanRequestByIdAsync(loanRequestId);
-                if (loanRequest.Data == null)
-                    return GenericResponse<VoteResultDto>.FailResponse("Loan request not found", 404);
+                // For LoanApproval, get poolId for member count
+                string poolId = null;
+                if (operationType == VoteOperationType.LoanApproval)
+                {
+                    var loanRequest = await _loanRepository.GetLoanRequestByIdAsync(operationId);
+                    if (loanRequest.Data == null)
+                        return GenericResponse<VoteResultDto>.FailResponse("Loan request not found", 404);
+                    poolId = loanRequest.Data.MatchedPoolId;
+                }
+                // For other operation types, you may want to add logic to get poolId
 
-                // Get all votes for this request
-                var votes = await _votingRepository.GetVotesByLoanRequestAsync(loanRequestId);
+                // Get all votes for this operation
+                var votes = await _votingRepository.GetVotesByOperationAsync(operationId, operationType);
                 if (!votes.Success)
                     return GenericResponse<VoteResultDto>.FailResponse("Error retrieving votes", 500);
 
-                // Get total pool members
-                var totalMembers = await _votingRepository.GetPoolMemberCountAsync(loanRequest.Data.MatchedPoolId);
-                if (!totalMembers.Success)
-                    return GenericResponse<VoteResultDto>.FailResponse("Error getting pool member count", 500);
+                // Get total pool members (for LoanApproval) or set to votes.Data.Count for others
+                int totalMembers = votes.Data.Count;
+                if (operationType == VoteOperationType.LoanApproval && poolId != null)
+                {
+                    var memberCount = await _votingRepository.GetPoolMemberCountAsync(poolId);
+                    if (!memberCount.Success)
+                        return GenericResponse<VoteResultDto>.FailResponse("Error getting pool member count", 500);
+                    totalMembers = memberCount.Data;
+                }
 
                 var voteCounts = votes.Data.GroupBy(v => v.VoteType)
                     .ToDictionary(g => g.Key, g => g.Count());
 
-                var approveVotes = voteCounts.GetValueOrDefault(VoteType.Approve, 0);
-                var rejectVotes = voteCounts.GetValueOrDefault(VoteType.Reject, 0);
-                var abstainVotes = voteCounts.GetValueOrDefault(VoteType.Abstain, 0);
+                var approveVotes = voteCounts.GetValueOrDefault("Approve", 0);
+                var rejectVotes = voteCounts.GetValueOrDefault("Reject", 0);
+                var abstainVotes = voteCounts.GetValueOrDefault("Abstain", 0);
                 var totalVotes = votes.Data.Count;
 
-                var approvalPercentage = totalMembers.Data > 0 ? (decimal)approveVotes / totalMembers.Data * 100 : 0;
-                var rejectionPercentage = totalMembers.Data > 0 ? (decimal)rejectVotes / totalMembers.Data * 100 : 0;
+                var approvalPercentage = totalMembers > 0 ? (decimal)approveVotes / totalMembers * 100 : 0;
+                var rejectionPercentage = totalMembers > 0 ? (decimal)rejectVotes / totalMembers * 100 : 0;
 
                 // Determine if approved or rejected (need >50% of total pool members)
                 var isApproved = approvalPercentage > 50;
@@ -156,12 +174,13 @@ namespace LendPool.Application.Services.Implementation
 
                 var result = new VoteResultDto
                 {
-                    LoanRequestId = loanRequestId,
+                    OperationId = operationId,
+                    OperationType = operationType,
                     TotalVotes = totalVotes,
                     ApproveVotes = approveVotes,
                     RejectVotes = rejectVotes,
                     AbstainVotes = abstainVotes,
-                    TotalPoolMembers = totalMembers.Data,
+                    TotalPoolMembers = totalMembers,
                     ApprovalPercentage = approvalPercentage,
                     RejectionPercentage = rejectionPercentage,
                     IsApproved = isApproved,
@@ -174,7 +193,7 @@ namespace LendPool.Application.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting vote result for request {RequestId}", loanRequestId);
+                _logger.LogError(ex, "Error getting vote result for operation {OperationId}", operationId);
                 return GenericResponse<VoteResultDto>.FailResponse("Error retrieving vote result", 500);
             }
         }
@@ -188,11 +207,11 @@ namespace LendPool.Application.Services.Implementation
                     return GenericResponse<List<VoteResultDto>>.FailResponse("Error retrieving pool votes", 500);
 
                 var voteResults = new List<VoteResultDto>();
-                var groupedVotes = votes.Data.GroupBy(v => v.LoanRequestId);
+                var groupedVotes = votes.Data.GroupBy(v => new { v.OperationId, v.OperationType });
 
                 foreach (var group in groupedVotes)
                 {
-                    var result = await GetVoteResultAsync(group.Key);
+                    var result = await GetVoteResultAsync(group.Key.OperationId, group.Key.OperationType);
                     if (result.Success)
                     {
                         voteResults.Add(result.Data);
@@ -228,11 +247,11 @@ namespace LendPool.Application.Services.Implementation
                 var participationRate = totalMembers.Data > 0 ? (decimal)activeVoters / totalMembers.Data * 100 : 0;
 
                 var recentVotes = new List<VoteResultDto>();
-                var groupedVotes = votes.Data.GroupBy(v => v.LoanRequestId).Take(5); // Get last 5 votes
+                var groupedVotes = votes.Data.GroupBy(v => new { v.OperationId, v.OperationType }).Take(5); // Get last 5 votes
 
                 foreach (var group in groupedVotes)
                 {
-                    var result = await GetVoteResultAsync(group.Key);
+                    var result = await GetVoteResultAsync(group.Key.OperationId, group.Key.OperationType);
                     if (result.Success)
                     {
                         recentVotes.Add(result.Data);
@@ -258,9 +277,9 @@ namespace LendPool.Application.Services.Implementation
             }
         }
 
-        public async Task<GenericResponse<bool>> HasVotedAsync(string lenderId, string loanRequestId)
+        public async Task<GenericResponse<bool>> HasVotedAsync(string lenderId, string operationId, VoteOperationType operationType)
         {
-            return await _votingRepository.HasVotedAsync(lenderId, loanRequestId);
+            return await _votingRepository.HasVotedAsync(lenderId, operationId, operationType);
         }
 
         public async Task<GenericResponse<int>> GetPoolMemberCountAsync(string poolId)
@@ -268,9 +287,9 @@ namespace LendPool.Application.Services.Implementation
             return await _votingRepository.GetPoolMemberCountAsync(poolId);
         }
 
-        public async Task<GenericResponse<int>> GetActiveVoterCountAsync(string loanRequestId)
+        public async Task<GenericResponse<int>> GetActiveVoterCountAsync(string operationId, VoteOperationType operationType)
         {
-            return await _votingRepository.GetActiveVoterCountAsync(loanRequestId);
+            return await _votingRepository.GetActiveVoterCountAsync(operationId, operationType);
         }
     }
 } 

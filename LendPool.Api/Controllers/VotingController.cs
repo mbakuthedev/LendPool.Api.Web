@@ -1,5 +1,6 @@
 using LendPool.Application.Services.Interfaces;
 using LendPool.Domain.DTOs;
+using LendPool.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -41,10 +42,10 @@ namespace LendPool.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("vote-result/{loanRequestId}")]
-        public async Task<IActionResult> GetVoteResult(string loanRequestId)
+        [HttpGet("vote-result/{operationId}/{operationType}")]
+        public async Task<IActionResult> GetVoteResult(string operationId, VoteOperationType operationType)
         {
-            var result = await _votingService.GetVoteResultAsync(loanRequestId);
+            var result = await _votingService.GetVoteResultAsync(operationId, operationType);
 
             if (!result.Success)
                 return BadRequest(result.Message);
@@ -74,14 +75,14 @@ namespace LendPool.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("has-voted/{loanRequestId}")]
-        public async Task<IActionResult> HasVoted(string loanRequestId)
+        [HttpGet("has-voted/{operationId}/{operationType}")]
+        public async Task<IActionResult> HasVoted(string operationId, VoteOperationType operationType)
         {
             var lenderId = GetUserId();
             if (string.IsNullOrWhiteSpace(lenderId))
                 return Unauthorized("Lender not authenticated");
 
-            var result = await _votingService.HasVotedAsync(lenderId, loanRequestId);
+            var result = await _votingService.HasVotedAsync(lenderId, operationId, operationType);
 
             if (!result.Success)
                 return BadRequest(result.Message);
@@ -100,10 +101,10 @@ namespace LendPool.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("active-voter-count/{loanRequestId}")]
-        public async Task<IActionResult> GetActiveVoterCount(string loanRequestId)
+        [HttpGet("active-voter-count/{operationId}/{operationType}")]
+        public async Task<IActionResult> GetActiveVoterCount(string operationId, VoteOperationType operationType)
         {
-            var result = await _votingService.GetActiveVoterCountAsync(loanRequestId);
+            var result = await _votingService.GetActiveVoterCountAsync(operationId, operationType);
 
             if (!result.Success)
                 return BadRequest(result.Message);

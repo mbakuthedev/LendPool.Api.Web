@@ -6,14 +6,12 @@ namespace LendPool.Domain.Models
 {
     public class Vote : BaseEntity
     {
-        public string LoanRequestId { get; set; }
+        public string OperationId { get; set; } // ID of the operation being voted on (loan, rule, etc.)
+        public VoteOperationType OperationType { get; set; } // Type of operation
         public string LenderId { get; set; }
-        public string VoteType { get; set; }
+        public string VoteType { get; set; } // Approve, Reject, Abstain
         public string? Comment { get; set; }
         public DateTime VotedAt { get; set; } = DateTime.UtcNow;
-
-        [ForeignKey(nameof(LoanRequestId))]
-        public LoanRequest LoanRequest { get; set; }
 
         [ForeignKey(nameof(LenderId))]
         public User Lender { get; set; }

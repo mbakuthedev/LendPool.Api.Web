@@ -1,4 +1,5 @@
 using LendPool.Domain.Data;
+using LendPool.Domain.Enums;
 using LendPool.Domain.Models;
 using LendPool.Domain.Responses;
 using LendPool.Infrastructure.Repositories.Interfaces;
@@ -29,13 +30,13 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             }
         }
 
-        public async Task<GenericResponse<List<Vote>>> GetVotesByLoanRequestAsync(string loanRequestId)
+        public async Task<GenericResponse<List<Vote>>> GetVotesByOperationAsync(string operationId, VoteOperationType operationType)
         {
             try
             {
                 var votes = await _context.Votes
                     .Include(v => v.Lender)
-                    .Where(v => v.LoanRequestId == loanRequestId)
+                    .Where(v => v.OperationId == operationId && v.OperationType == operationType)
                     .ToListAsync();
 
                 return GenericResponse<List<Vote>>.SuccessResponse(votes, 200, "Votes retrieved successfully");
@@ -46,12 +47,12 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             }
         }
 
-        public async Task<GenericResponse<bool>> HasVotedAsync(string lenderId, string loanRequestId)
+        public async Task<GenericResponse<bool>> HasVotedAsync(string lenderId, string operationId, VoteOperationType operationType)
         {
             try
             {
                 var hasVoted = await _context.Votes
-                    .AnyAsync(v => v.LenderId == lenderId && v.LoanRequestId == loanRequestId);
+                    .AnyAsync(v => v.LenderId == lenderId && v.OperationId == operationId && v.OperationType == operationType);
 
                 return GenericResponse<bool>.SuccessResponse(hasVoted, 200, "Vote status checked");
             }
@@ -76,12 +77,12 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             }
         }
 
-        public async Task<GenericResponse<int>> GetActiveVoterCountAsync(string loanRequestId)
+        public async Task<GenericResponse<int>> GetActiveVoterCountAsync(string operationId, VoteOperationType operationType)
         {
             try
             {
                 var activeVoterCount = await _context.Votes
-                    .Where(v => v.LoanRequestId == loanRequestId)
+                    .Where(v => v.OperationId == operationId && v.OperationType == operationType)
                     .CountAsync();
 
                 return GenericResponse<int>.SuccessResponse(activeVoterCount, 200, "Active voter count retrieved");
@@ -98,8 +99,7 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             {
                 var votes = await _context.Votes
                     .Include(v => v.Lender)
-                    .Include(v => v.LoanRequest)
-                    .Where(v => v.LoanRequest.MatchedPoolId == poolId)
+                    .Where(v => v.OperationType == VoteOperationType.LoanApproval && v.Lender.LenderPoolMemberships.Any(m => m.LenderPoolId == poolId))
                     .ToListAsync();
 
                 return GenericResponse<List<Vote>>.SuccessResponse(votes, 200, "Pool votes retrieved successfully");
@@ -110,13 +110,13 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             }
         }
 
-        public async Task<GenericResponse<Vote>> GetVoteByLenderAndRequestAsync(string lenderId, string loanRequestId)
+        public async Task<GenericResponse<Vote>> GetVoteByLenderAndOperationAsync(string lenderId, string operationId, VoteOperationType operationType)
         {
             try
             {
                 var vote = await _context.Votes
                     .Include(v => v.Lender)
-                    .FirstOrDefaultAsync(v => v.LenderId == lenderId && v.LoanRequestId == loanRequestId);
+                    .FirstOrDefaultAsync(v => v.LenderId == lenderId && v.OperationId == operationId && v.OperationType == operationType);
 
                 if (vote == null)
                     return GenericResponse<Vote>.FailResponse("Vote not found", 404);
