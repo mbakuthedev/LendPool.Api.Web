@@ -76,6 +76,20 @@ namespace LendPool.Api.Controllers
             return Ok(pools);
         }
 
+        //[HttpPut("lender/edit-pool/{poolId}")]
+        //public async Task<IActionResult> UpdatePool(string poolId, [FromBody] EditPoolInformationDto dto)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized("User not logged in");
+
+        //    var updatedPool = await _lenderPoolService.EditPoolInformation(userId, poolId, dto);
+
+        //    return Success(updatedPool);
+        //}
+
+
         [HttpPost("lender/contribute/{poolId}")]
         public async Task<IActionResult> Contribute(ContributeToPoolDto contributeToPoolDto)
         {

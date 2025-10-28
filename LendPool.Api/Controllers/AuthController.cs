@@ -97,7 +97,7 @@ namespace LendPool.Api.Controllers
 
 
         [Authorize(Roles = "Lender")]
-        [HttpPost("user/kyc-lender")]
+        [HttpPost("user/update-lender-kyc")]
         public async Task<IActionResult> UpdateLenderKyc([FromBody] LenderKycUpdateRequest request)
         {
             var resultData = await _authService.UpdateLenderKycAsync(request);
@@ -105,7 +105,7 @@ namespace LendPool.Api.Controllers
             if (!resultData.Success || !resultData.Data)
                 return BadRequest(resultData.Message);
 
-            return Ok(resultData.Message);
+            return Success(resultData.Message);
         }
 
         [HttpPost("auth/register")]
