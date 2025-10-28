@@ -12,7 +12,7 @@ namespace LendPool.Domain.Models
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public string Rules { get; set; } // Pool rules/agreement
+        public string? Rules { get; set; } // Pool rules/agreement
         public string CreatedByUserId { get; set; }
         public decimal InterestRate { get; set; }
         public decimal MinimumAmount { get; set; }

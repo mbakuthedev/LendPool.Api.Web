@@ -11,6 +11,7 @@ namespace LendPool.Application.Services.Interfaces
 {
     public interface ILenderpoolService
     {
+        Task<GenericResponse<LenderPool>> EditPoolInformation(string userId, string poolId, EditPoolInformationDto dto);
         Task<GenericResponse<string>> AddUserToPoolAsync(AddUserToPoolDto dto, string actingUserId);
         Task<GenericResponse<LenderPoolDto>> GetPoolById(string poolId);
         Task<GenericResponse<LenderPool>> CreateLenderPoolAsync(CreateLenderPoolDto dto, string creatorUserId);

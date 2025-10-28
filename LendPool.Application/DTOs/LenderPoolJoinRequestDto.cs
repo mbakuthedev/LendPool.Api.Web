@@ -11,6 +11,6 @@ namespace LendPool.Application.DTOs
         public string Status { get; set; }
         public DateTime RequestedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
-        public string ReviewedBy { get; set; }
+        public string? ReviewedBy { get; set; }
     }
 } 

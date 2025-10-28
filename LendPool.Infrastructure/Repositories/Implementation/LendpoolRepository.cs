@@ -36,6 +36,12 @@ namespace LendPool.Infrastructure.Repositories.Implementation
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<LenderPool> UpdateLenderPool(LenderPool pool)
+        {
+            _context.LenderPools.Update(pool);
+            await _context.SaveChangesAsync();
+            return pool;
+        }
 
         public async Task<GenericResponse<PoolSummaryDto>> GetPoolSummaryAsync(string poolId)
         {

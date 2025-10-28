@@ -27,5 +27,6 @@ namespace LendPool.Infrastructure.Repositories.Interfaces
         Task<GenericResponse<IEnumerable<Repayment>>> GetRepaymentsAsync(string poolId);
         Task<GenericResponse<bool>> ContributeAsync(PoolContribution contribution);
         Task<GenericResponse<bool>> WithdrawAsync(string poolId, decimal amount);
+        Task<LenderPool> UpdateLenderPool(LenderPool pool);
     }
 }

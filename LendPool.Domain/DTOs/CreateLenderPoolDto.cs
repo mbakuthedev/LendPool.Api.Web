@@ -15,6 +15,14 @@ namespace LendPool.Domain.DTOs
         public decimal MaximumAmount { get; set; }
     }
 
+    public class EditPoolInformationDto
+    {
+        public string Description { get; set; }
+        public decimal MinimumAmount { get; set; }
+        public decimal MaximumAmount { get; set; }
+        public string  Rules { get; set; }
+
+    }
     public class ContributeToPoolDto
     {
         public string PoolId { get; set; }

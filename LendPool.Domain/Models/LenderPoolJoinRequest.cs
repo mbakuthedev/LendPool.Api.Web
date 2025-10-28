@@ -17,7 +17,7 @@ namespace LendPool.Domain.Models
         public string Status { get; set; } = JoinRequestStatus.Pending.ToString();
         public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReviewedAt { get; set; }
-        public string ReviewedBy { get; set; } // SuperLenderId
+        public string? ReviewedBy { get; set; } // SuperLenderId
 
         [ForeignKey(nameof(PoolId))]
         public LenderPool Pool { get; set; }

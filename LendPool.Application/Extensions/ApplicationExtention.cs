@@ -14,13 +14,39 @@ namespace LendPool.Application.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
+            // Core Services
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IBorrowerAnalyticsService, BorrowerAnalyticsService>();
-            services.AddScoped<IAdminLoanMatchingService, AdminLoanMatchingService>();
-            services.AddScoped<ILenderDashboardService, LenderDashboardService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IWalletService, WalletService>();
+            
+            // Loan Services
+            services.AddScoped<ILoanService, LoanService>();
+            services.AddScoped<IDisbursementService, DisbursementService>();
+            services.AddScoped<IRepaymentService, RepaymentService>();
+            services.AddScoped<IInterestPaymentService, InterestPaymentService>();
+            
+            // Pool Services
+            services.AddScoped<ILenderpoolService, LenderpoolService>();
+            services.AddScoped<ILenderInvestmentService, LenderInvestmentService>();
+            // services.AddScoped<ILenderMembershipService, LenderMembershipService>(); // Implementation not found
+            
+            // Request Services
             services.AddScoped<ILenderPoolJoinRequestService, LenderPoolJoinRequestService>();
+            
+            // Dashboard & Analytics
+            services.AddScoped<ILenderDashboardService, LenderDashboardService>();
+            services.AddScoped<IBorrowerAnalyticsService, BorrowerAnalyticsService>();
+            
+            // Voting & Reconciliation
             services.AddScoped<IVotingService, VotingService>();
-            // Add other application services here
+            services.AddScoped<IReconciliationService, ReconciliationService>();
+            
+            // Admin Services
+            services.AddScoped<IAdminLoanMatchingService, AdminLoanMatchingService>();
+            
+            // Background Services (registered as hosted services in Program.cs)
+            // services.AddScoped<IRefreshTokenCleanupService, RefreshTokenCleanupService>();
+            
             return services;
         }
     }

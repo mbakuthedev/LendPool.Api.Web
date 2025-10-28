@@ -108,6 +108,40 @@ namespace LendPool.Application.Services.Implementation
             }
         }
 
+        public async Task<GenericResponse<LenderPool>> EditPoolInformation(string userId, string poolId, EditPoolInformationDto dto)
+        {
+            try
+            {
+                var pool = await _poolRepository.GetPoolById(poolId);
+
+                if (pool.Data == null)
+                {
+                    return GenericResponse<LenderPool>.FailResponse("Pool does not exist", 404);
+                }
+
+              
+                if (pool.Data.CreatedByUserId != userId)
+                {
+                    return GenericResponse<LenderPool>.FailResponse("You are not authorized to edit this pool", 403);
+                }
+
+                pool.Data.Description = dto.Description ?? pool.Data.Description;
+                pool.Data.Rules = dto.Rules ?? pool.Data.Rules;
+                pool.Data.MaximumAmount = dto.MaximumAmount != 0 ? dto.MaximumAmount : pool.Data.MaximumAmount;
+                pool.Data.MinimumAmount = dto.MinimumAmount != 0 ? dto.MinimumAmount : pool.Data.MinimumAmount;
+                pool.Data.DateModified = DateTime.UtcNow;
+
+                await _poolRepository.UpdateLenderPool(pool.Data);
+
+                return GenericResponse<LenderPool>.SuccessResponse(pool.Data, 200, "Pool information updated successfully");
+            }
+            catch (Exception ex)
+            {
+              return GenericResponse<LenderPool>.FailResponse($"An error occurred while updating the pool: {ex.Message}", 500);
+             
+            }
+        }
+
 
         public async Task<GenericResponse<bool>> ContributeToPoolAsync(ContributeToPoolDto dto)
         {

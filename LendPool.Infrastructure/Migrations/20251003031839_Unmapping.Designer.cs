@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LendPool.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250719182732_GeneralizeVotingSystem")]
-    partial class GeneralizeVotingSystem
+    [Migration("20251003031839_Unmapping")]
+    partial class Unmapping
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -895,10 +895,6 @@ namespace LendPool.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal?>("InvestmentCapacity")
                         .HasColumnType("numeric");
 
@@ -938,7 +934,6 @@ namespace LendPool.Infrastructure.Migrations
                             DateModified = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@lendpool.com",
                             FirstName = "Admin",
-                            FullName = "Admin Gbemidebe",
                             IsKycVerified = false,
                             LastName = "Gbemidebe",
                             PasswordHash = "$2a$11$.7M3DWXSh2PA6ETF4DyBLuKwDj1SAY7.aEfcj3a7x7q8ClPMT42bO",

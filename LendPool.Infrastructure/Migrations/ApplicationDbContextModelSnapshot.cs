@@ -253,7 +253,6 @@ namespace LendPool.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Rules")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal>("TotalCapital")
@@ -292,7 +291,6 @@ namespace LendPool.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReviewedBy")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Status")
@@ -892,10 +890,6 @@ namespace LendPool.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal?>("InvestmentCapacity")
                         .HasColumnType("numeric");
 
@@ -935,7 +929,6 @@ namespace LendPool.Infrastructure.Migrations
                             DateModified = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@lendpool.com",
                             FirstName = "Admin",
-                            FullName = "Admin Gbemidebe",
                             IsKycVerified = false,
                             LastName = "Gbemidebe",
                             PasswordHash = "$2a$11$.7M3DWXSh2PA6ETF4DyBLuKwDj1SAY7.aEfcj3a7x7q8ClPMT42bO",

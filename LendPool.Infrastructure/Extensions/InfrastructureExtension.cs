@@ -31,14 +31,25 @@ namespace LendPool.Infrastructure.Extensions
 
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
+            // Core Repositories
             services.AddScoped<IUserRepository, UserRepository>()
-                .AddScoped<ILendpoolRepository, LendpoolRepository>()
-                .AddScoped<IRepaymentRepository, RepaymentRepository>()
-                .AddScoped<ILoanRepository, LoanRepository>()
                 .AddScoped<IWalletRepository, WalletRepository>()
-                .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
-                .AddScoped<IVotingRepository, VotingRepository>();
-               // .AddScoped<>;
+                .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            
+            // Pool Repositories
+            services.AddScoped<ILendpoolRepository, LendpoolRepository>()
+                .AddScoped<ILenderInvestmentRepository, LenderInvestmentRepository>()
+                .AddScoped<IPoolTenorRepository, PoolTenorRepository>();
+            // services.AddScoped<ILenderMembershipRepository, LenderMembershipRepository>(); // Interface not found
+            
+            // Loan Repositories
+            services.AddScoped<ILoanRepository, LoanRepository>()
+                .AddScoped<IDisbursementRepository, DisbursementRepository>()
+                .AddScoped<IRepaymentRepository, RepaymentRepository>();
+            
+            // System Repositories
+            services.AddScoped<IVotingRepository, VotingRepository>()
+                .AddScoped<IReconciliationRepository, ReconciliationRepository>();
              
             return services;
         }
